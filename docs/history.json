@@ -1,0 +1,14 @@
+[
+  {
+    "slug": "taskflow",
+    "name": "TaskFlow - 진행도/TODO 관리 대시보드",
+    "logs": [
+      { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의적 개선안) 참여. 1차/2차 범위 분리 완료." },
+      { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "외부 디자인 시안(docs/data) 검토. 디자이너A(트렌드), 디자이너B(실용성) 검토 완료. 개선사항 6건 도출." },
+      { "phase": "승인", "status": "승인", "date": "2026-03-10", "note": "사용자 승인 완료. 개선사항 6건 반영하여 개발 진행." },
+      { "phase": "개발", "status": "완료", "date": "2026-03-10", "note": "프론트개발자 구현 완료. Next.js 16 + Tailwind v4 + Pretendard. 개선사항 6건 모두 반영. 빌드 성공." }
+    ],
+    "reviews": ["docs/reviews/taskflow-plan.html", "docs/reviews/taskflow-design.html"],
+    "spec": "docs/specs/taskflow-spec.md"
+  }
+]

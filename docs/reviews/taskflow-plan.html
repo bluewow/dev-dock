@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 기획 요약</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Pretendard', sans-serif; }
+    .flow-arrow::after {
+      content: '';
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 20px solid transparent;
+      border-bottom: 20px solid transparent;
+      border-left: 12px solid #e0e7ff;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">TaskFlow - 기획 요약</h1>
+          <p class="text-sm text-slate-500 mt-1">프로젝트 진행도 & TODO 관리 대시보드</p>
+        </div>
+        <div class="text-right">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">기획 완료</span>
+          <p class="text-xs text-slate-400 mt-1">2026-03-10</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- 프로덕트 개요 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">프로덕트 개요</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">배경</h3>
+          <p class="text-slate-700 leading-relaxed">
+            어떤 일을 진행할 때 진행 상황을 시각적으로 확인하고, TODO를 체계적으로 관리할 수 있는 프로덕트가 필요합니다.
+            기존 도구들은 기능이 복잡하거나, 진행도 시각화가 직관적이지 않은 경우가 많습니다.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">목표</h3>
+          <ul class="space-y-2 text-slate-700">
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></span>
+              태스크를 빠르게 추가/관리할 수 있는 직관적 인터페이스
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></span>
+              전체 진행률을 한눈에 파악할 수 있는 시각화
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></span>
+              마일스톤 기반 프로젝트 진행 추적
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 핵심 기능 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">핵심 기능 (1차 개발 범위)</h2>
+      <div class="space-y-4">
+        <!-- P0 기능들 -->
+        <div class="border border-red-100 rounded-lg p-4 bg-red-50/30">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">P0 - 필수</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-lg p-4 border border-slate-100">
+              <h4 class="font-semibold text-slate-800 mb-1">태스크 CRUD</h4>
+              <p class="text-sm text-slate-600">태스크 생성(날짜/제목/상세), 조회, 수정, 삭제. 삭제 시 확인 다이얼로그 포함.</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-slate-100">
+              <h4 class="font-semibold text-slate-800 mb-1">완료 토글</h4>
+              <p class="text-sm text-slate-600">체크박스로 태스크 완료/미완료 전환. 완료 시 취소선 + 투명도 효과.</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-slate-100">
+              <h4 class="font-semibold text-slate-800 mb-1">진행률 시각화</h4>
+              <p class="text-sm text-slate-600">전체 태스크 대비 완료율을 화살표 프로그레스 바로 실시간 표시.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- P1 기능들 -->
+        <div class="border border-amber-100 rounded-lg p-4 bg-amber-50/30">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">P1 - 중요</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg p-4 border border-slate-100">
+              <h4 class="font-semibold text-slate-800 mb-1">마일스톤 표시</h4>
+              <p class="text-sm text-slate-600">프로그레스 바 위에 주요 일정 포인트 표시 (1차에서는 정적).</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 border border-slate-100">
+              <h4 class="font-semibold text-slate-800 mb-1">데이터 영속성</h4>
+              <p class="text-sm text-slate-600">localStorage 기반 데이터 저장. 새로고침 시에도 태스크 유지.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2차 범위 -->
+        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50/50">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-200 text-slate-600">2차 개발</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">마일스톤 동적 관리</span>
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">태스크 우선순위</span>
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">드래그앤드롭 정렬</span>
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">다크 모드</span>
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">알림</span>
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm text-slate-600">프로젝트명 커스터마이징</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 화면 플로우 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">화면 플로우</h2>
+      <div class="bg-slate-50 rounded-lg p-6">
+        <div class="text-center mb-6">
+          <span class="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-lg font-semibold text-sm">
+            SPA (단일 대시보드 화면)
+          </span>
+        </div>
+        <div class="space-y-4">
+          <!-- 상단 -->
+          <div class="bg-white rounded-lg border border-slate-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded bg-primary-500 text-white text-xs flex items-center justify-center font-bold">1</span>
+              <span class="font-semibold text-slate-800">상단 네비게이션</span>
+            </div>
+            <p class="text-sm text-slate-600 ml-8">로고 (TaskFlow) + 알림 아이콘 + 사용자 프로필 아바타</p>
+          </div>
+          <!-- 중단 -->
+          <div class="bg-white rounded-lg border border-slate-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded bg-primary-500 text-white text-xs flex items-center justify-center font-bold">2</span>
+              <span class="font-semibold text-slate-800">프로젝트 진행도 섹션</span>
+            </div>
+            <p class="text-sm text-slate-600 ml-8">프로젝트명 + 진행률(%) + 화살표 프로그레스 바 (그라데이션) + 마일스톤 4개</p>
+          </div>
+          <!-- 하단 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg border border-slate-200 p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-primary-500 text-white text-xs flex items-center justify-center font-bold">3</span>
+                <span class="font-semibold text-slate-800">태스크 추가 폼</span>
+              </div>
+              <ul class="text-sm text-slate-600 ml-8 space-y-1">
+                <li>- Due Date (date picker, 필수)</li>
+                <li>- Task Title (텍스트, 필수, 100자)</li>
+                <li>- Details (텍스트 영역, 선택, 500자)</li>
+                <li>- Create Task 버튼</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-lg border border-slate-200 p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-primary-500 text-white text-xs flex items-center justify-center font-bold">4</span>
+                <span class="font-semibold text-slate-800">백로그 리스트</span>
+              </div>
+              <ul class="text-sm text-slate-600 ml-8 space-y-1">
+                <li>- 정렬: 최신순 (기본)</li>
+                <li>- 태스크 카드: 체크박스 + 제목 + 날짜 + 상세 + 삭제</li>
+                <li>- 빈 상태: "No tasks yet" 안내</li>
+                <li>- 삭제: 확인 다이얼로그 후 삭제</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 데이터 모델 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">데이터 모델</h2>
+      <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto">
+        <pre class="text-sm text-green-400 font-mono"><code>interface Task {
+  id: number;         // timestamp 기반 고유 ID
+  date: string;       // YYYY-MM-DD (마감일)
+  title: string;      // 태스크 제목 (최대 100자)
+  body: string;       // 태스크 상세 설명 (최대 500자)
+  completed: boolean; // 완료 여부
+}
+
+// localStorage key: "taskflow-tasks"
+// 저장 형태: JSON.stringify(Task[])</code></pre>
+      </div>
+    </section>
+
+    <!-- QA 검증 결과 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">QA 검증 결과</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 text-left">
+              <th class="px-4 py-2 font-semibold text-slate-600">플로우</th>
+              <th class="px-4 py-2 font-semibold text-slate-600">상태</th>
+              <th class="px-4 py-2 font-semibold text-slate-600">비고</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="px-4 py-2 text-slate-800">태스크 생성</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">OK</span></td>
+              <td class="px-4 py-2 text-slate-600">폼 입력 -> 리스트에 추가, 역순 정렬</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-slate-800">완료 토글</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">OK</span></td>
+              <td class="px-4 py-2 text-slate-600">체크박스 -> line-through + opacity</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-slate-800">태스크 삭제</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">개선필요</span></td>
+              <td class="px-4 py-2 text-slate-600">확인 없이 즉시 삭제 -> 확인 다이얼로그 추가 필요</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-slate-800">진행률 업데이트</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">OK</span></td>
+              <td class="px-4 py-2 text-slate-600">완료 토글 시 자동 재계산</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-slate-800">빈 상태 처리</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">OK</span></td>
+              <td class="px-4 py-2 text-slate-600">모든 태스크 삭제 시 안내 표시</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-slate-800">데이터 영속성</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">NG</span></td>
+              <td class="px-4 py-2 text-slate-600">새로고침 시 초기화 -> localStorage 연동 필수</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 참여 팀원 -->
+    <section class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-4">참여 팀원</h2>
+      <div class="flex flex-wrap gap-3">
+        <span class="px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-sm font-medium">기획자A (디테일 기획)</span>
+        <span class="px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-sm font-medium">기획자B (창의적 개선안)</span>
+        <span class="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium">디자이너A (트렌드 검토)</span>
+        <span class="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium">디자이너B (실용성 검토)</span>
+        <span class="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-sm font-medium">QA (플로우 검증)</span>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center mt-8">
+    <p class="text-sm text-slate-400">Product Team 산출물 | 2026-03-10</p>
+  </footer>
+
+</body>
+</html>
