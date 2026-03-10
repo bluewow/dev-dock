@@ -7,50 +7,21 @@ flutter_app/build/
 flutter_app/.flutter-plugins
 flutter_app/.flutter-plugins-dependencies
 
-# Android
-flutter_app/android/.gradle/
-flutter_app/android/app/debug/
-flutter_app/android/app/profile/
-flutter_app/android/app/release/
-flutter_app/android/local.properties
-flutter_app/android/**/GeneratedPluginRegistrant.java
-*.apk
-*.aab
-
-# iOS
-flutter_app/ios/Pods/
-flutter_app/ios/.symlinks/
-flutter_app/ios/Flutter/Flutter.framework
-flutter_app/ios/Flutter/Flutter.podspec
-flutter_app/ios/Flutter/Generated.xcconfig
-flutter_app/ios/Flutter/app.flx
-flutter_app/ios/Flutter/app.zip
-flutter_app/ios/Flutter/flutter_assets/
-flutter_app/ios/Flutter/flutter_export_environment.sh
-flutter_app/ios/ServiceDefinitions.json
-flutter_app/ios/Runner/GeneratedPluginRegistrant.*
-*.ipa
-
-# macOS
-flutter_app/macos/Flutter/GeneratedPluginRegistrant.swift
-flutter_app/macos/Flutter/ephemeral/
-
-# Windows
+# Windows (auto-generated)
 flutter_app/windows/flutter/generated_plugin_registrant.cc
 flutter_app/windows/flutter/generated_plugin_registrant.h
 flutter_app/windows/flutter/generated_plugins.cmake
+flutter_app/windows/flutter/ephemeral/
 
-# Linux
-flutter_app/linux/flutter/generated_plugin_registrant.cc
-flutter_app/linux/flutter/generated_plugin_registrant.h
-flutter_app/linux/flutter/generated_plugins.cmake
+# Installer / Build output
+dist/
 
-# Web
-flutter_app/web/favicon.png
-flutter_app/web/icons/
+# Claude Code (secrets)
+.claude/settings.local.json
 
 # Misc
 .DS_Store
+Thumbs.db
 *.pem
 *.log
 .env*
