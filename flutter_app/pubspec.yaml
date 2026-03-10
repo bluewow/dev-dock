@@ -1,0 +1,41 @@
+name: milestone_app
+description: "Milestone - 로컬 프로젝트 관리 허브"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  fluent_ui: ^4.9.2
+  webview_windows: ^0.4.0
+  file_picker: ^8.1.7
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  uuid: ^4.5.1
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
+        - asset: assets/fonts/Pretendard-ExtraBold.otf
+          weight: 800
