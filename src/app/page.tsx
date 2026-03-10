@@ -1,447 +1,473 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface Task {
-  id: number;
+
+interface Project {
+  id: string;
+  name: string;
+  path: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TaskLog {
+  phase: string;
+  status: string;
   date: string;
-  title: string;
-  body: string;
-  completed: boolean;
+  note: string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const STORAGE_KEY = "taskflow-tasks";
-
-const MILESTONES = [
-  { position: 15, label: "Oct 1", passed: true },
-  { position: 40, label: "Oct 15", passed: true },
-  { position: 70, label: "Nov 5", passed: false },
-  { position: 90, label: "Nov 20", passed: false },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function loadTasks(): Task[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // corrupted data, reset
-  }
-  return [];
+interface TaskEntry {
+  slug: string;
+  name: string;
+  logs: TaskLog[];
 }
 
-function saveTasks(tasks: Task[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+interface ProjectWithScan extends Project {
+  history?: TaskEntry[] | null;
+  taskCount?: number;
+  completedCount?: number;
+  latestActivity?: string;
+  latestStatus?: string;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [mounted, setMounted] = useState(false);
+// ─── Color Map ────────────────────────────────────────────────────────────────
 
-  // Form state
-  const [formDate, setFormDate] = useState("");
-  const [formTitle, setFormTitle] = useState("");
-  const [formBody, setFormBody] = useState("");
+const COLOR_MAP: Record<string, { dot: string; bg: string; text: string }> = {
+  emerald: { dot: "bg-emerald-400", bg: "bg-emerald-50", text: "text-emerald-700" },
+  blue: { dot: "bg-blue-400", bg: "bg-blue-50", text: "text-blue-700" },
+  purple: { dot: "bg-purple-400", bg: "bg-purple-50", text: "text-purple-700" },
+  amber: { dot: "bg-amber-400", bg: "bg-amber-50", text: "text-amber-700" },
+  rose: { dot: "bg-rose-400", bg: "bg-rose-50", text: "text-rose-700" },
+  slate: { dot: "bg-slate-400", bg: "bg-slate-50", text: "text-slate-700" },
+};
 
-  // Delete confirmation
-  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+const COLORS = ["emerald", "blue", "purple", "amber", "rose", "slate"];
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    setMounted(true);
-    const stored = loadTasks();
-    if (stored.length > 0) {
-      setTasks(stored);
-    }
-  }, []);
+// ─── Sidebar Component ───────────────────────────────────────────────────────
 
-  // Save to localStorage whenever tasks change (after mount)
-  useEffect(() => {
-    if (mounted) {
-      saveTasks(tasks);
-    }
-  }, [tasks, mounted]);
-
-  // Progress calculation
-  const completedCount = tasks.filter((t) => t.completed).length;
-  const progressPercent =
-    tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
-
-  // Handlers
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!formDate || !formTitle.trim()) return;
-
-      const newTask: Task = {
-        id: Date.now(),
-        date: formDate,
-        title: formTitle.trim().slice(0, 100),
-        body: formBody.trim().slice(0, 500),
-        completed: false,
-      };
-
-      setTasks((prev) => [newTask, ...prev]);
-      setFormDate("");
-      setFormTitle("");
-      setFormBody("");
-    },
-    [formDate, formTitle, formBody]
-  );
-
-  const toggleTask = useCallback((id: number) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
-  }, []);
-
-  const requestDelete = useCallback((id: number) => {
-    setDeleteTarget(id);
-  }, []);
-
-  const confirmDelete = useCallback(() => {
-    if (deleteTarget !== null) {
-      setTasks((prev) => prev.filter((t) => t.id !== deleteTarget));
-      setDeleteTarget(null);
-    }
-  }, [deleteTarget]);
-
-  const cancelDelete = useCallback(() => {
-    setDeleteTarget(null);
-  }, []);
-
+function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return (
-    <div className="min-h-full flex flex-col">
-      {/* ── Top Navigation ──────────────────────────────────────────── */}
-      <nav className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5 13l4 4L19 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
+    <aside
+      className={`${collapsed ? "w-14" : "w-56"} sidebar-transition bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-screen sticky top-0`}
+    >
+      {/* Logo */}
+      <div className={`${collapsed ? "px-3" : "px-4"} py-5 border-b border-slate-100`}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer" onClick={onToggle}>
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
             </svg>
           </div>
-          <span className="text-xl font-bold tracking-tight text-slate-800">
-            TaskFlow
-          </span>
+          {!collapsed && <span className="font-bold text-slate-800">Milestone</span>}
         </div>
-        <div className="flex items-center gap-4">
-          <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </svg>
-          </button>
-          <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-semibold">
-            JD
-          </div>
-        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className={`flex-1 ${collapsed ? "px-2" : "px-3"} py-4 space-y-1`}>
+        <Link
+          href="/"
+          className={`flex items-center gap-3 ${collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"} rounded-xl bg-primary-50 text-primary-700 font-medium text-sm`}
+        >
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+          </svg>
+          {!collapsed && <span>대시보드</span>}
+        </Link>
       </nav>
 
-      {/* ── Main Content ────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-8 space-y-8 sm:space-y-12">
-        {/* ── Progress Section ──────────────────────────────────────── */}
-        <section className="space-y-6 pb-4 sm:pb-8">
-          <div className="flex justify-between items-end">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
-                Project Momentum
-              </h1>
-              <p className="text-slate-500 mt-1 text-sm sm:text-base">
-                Daily task completion progress
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl sm:text-4xl font-black text-indigo-600">
-                {progressPercent}%
-              </span>
-              <p className="text-xs uppercase tracking-widest font-bold text-slate-400">
-                Completed
-              </p>
-            </div>
+      {/* Bottom */}
+      <div className={`${collapsed ? "px-2" : "px-3"} py-4 border-t border-slate-100`}>
+        <button
+          onClick={onToggle}
+          className={`flex items-center gap-3 ${collapsed ? "justify-center px-0 py-2.5 w-full" : "px-3 py-2.5"} rounded-xl text-slate-400 hover:bg-slate-50 text-sm transition-colors`}
+        >
+          <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${collapsed ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+          </svg>
+          {!collapsed && <span>접기</span>}
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+// ─── Add Project Modal ────────────────────────────────────────────────────────
+
+function AddProjectModal({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (project: Project) => void;
+}) {
+  const [name, setName] = useState("");
+  const [projectPath, setProjectPath] = useState("");
+  const [color, setColor] = useState("emerald");
+  const [validating, setValidating] = useState(false);
+  const [validation, setValidation] = useState<{ valid: boolean; hasDocs: boolean; message: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleValidate = useCallback(async () => {
+    if (!projectPath.trim()) return;
+    setValidating(true);
+    setValidation(null);
+    try {
+      const res = await fetch(`/api/projects/validate/check?path=${encodeURIComponent(projectPath.trim())}`);
+      const data = await res.json();
+      setValidation(data);
+    } catch {
+      setValidation({ valid: false, hasDocs: false, message: "검증 요청에 실패했습니다." });
+    }
+    setValidating(false);
+  }, [projectPath]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!name.trim() || !projectPath.trim()) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), path: projectPath.trim(), color }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "등록에 실패했습니다.");
+        setSubmitting(false);
+        return;
+      }
+      const project = await res.json();
+      onCreated(project);
+      setName("");
+      setProjectPath("");
+      setColor("emerald");
+      setValidation(null);
+      onClose();
+    } catch {
+      setError("등록 요청에 실패했습니다.");
+    }
+    setSubmitting(false);
+  }, [name, projectPath, color, onClose, onCreated]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl p-6 mx-4 w-full max-w-md space-y-5 animate-slideUp">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800">새 프로젝트 등록</h3>
+          <p className="text-sm text-slate-500 mt-1">로컬 프로젝트 폴더를 등록하세요</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">프로젝트 이름</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="예: My Project"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow"
+            />
           </div>
 
-          {/* Arrow Progress Bar */}
-          <div className="relative h-16 sm:h-24 w-full flex items-center">
-            {/* Background Arrow */}
-            <div
-              className="absolute inset-0 bg-slate-200"
-              style={{
-                clipPath:
-                  "polygon(0% 20%, 85% 20%, 85% 0%, 100% 50%, 85% 100%, 85% 80%, 0% 80%)",
-              }}
-            />
-            {/* Fill Arrow */}
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 progress-fill-transition"
-              style={{
-                width: `${Math.max(progressPercent, 2)}%`,
-                clipPath:
-                  "polygon(0% 20%, 85% 20%, 85% 0%, 100% 50%, 85% 100%, 85% 80%, 0% 80%)",
-              }}
-            >
-              <div className="absolute inset-0 bg-white/10 opacity-50" />
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">로컬 경로</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={projectPath}
+                onChange={(e) => { setProjectPath(e.target.value); setValidation(null); }}
+                placeholder="예: C:\project\my-project"
+                className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow"
+              />
+              <button
+                onClick={handleValidate}
+                disabled={validating || !projectPath.trim()}
+                className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm transition-colors disabled:opacity-50"
+              >
+                {validating ? "..." : "검증"}
+              </button>
             </div>
+            {validation && (
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className={`w-2 h-2 rounded-full ${validation.valid ? "bg-emerald-400" : "bg-red-400"}`} />
+                <span className={`text-xs ${validation.valid ? "text-emerald-600" : "text-red-600"}`}>{validation.message}</span>
+              </div>
+            )}
+          </div>
 
-            {/* Milestones */}
-            <div className="absolute inset-0 w-full h-full">
-              {MILESTONES.map((ms, i) => (
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">카드 컬러</label>
+            <div className="flex gap-2">
+              {COLORS.map((c) => (
                 <div
-                  key={i}
-                  className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
-                  style={{ left: `${ms.position}%` }}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white border-2 shadow-sm ${
-                      ms.passed ? "border-indigo-600" : "border-slate-400"
-                    }`}
-                  />
-                  <span className="absolute top-10 sm:top-12 text-xs font-bold text-slate-400 whitespace-nowrap">
-                    {ms.label}
-                  </span>
-                </div>
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className={`w-8 h-8 rounded-lg ${COLOR_MAP[c].dot} cursor-pointer border-2 transition-all ${
+                    color === c ? "border-primary-600 ring-2 ring-primary-200" : "border-transparent hover:border-slate-300"
+                  }`}
+                />
               ))}
             </div>
           </div>
-        </section>
-
-        {/* ── Grid: Form + Task List ────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
-          {/* ── Task Entry Form ──────────────────────────────────────── */}
-          <section className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-              <svg
-                className="w-5 h-5 text-indigo-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 4v16m8-8H4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                />
-              </svg>
-              Add New Task
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  value={formDate}
-                  onChange={(e) => setFormDate(e.target.value)}
-                  required
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  Task Title
-                </label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="예: 디자인 리뷰"
-                  required
-                  maxLength={100}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  Details
-                </label>
-                <textarea
-                  value={formBody}
-                  onChange={(e) => setFormBody(e.target.value)}
-                  placeholder="태스크 상세 설명..."
-                  rows={3}
-                  maxLength={500}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow resize-none"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 active:scale-[0.98]"
-              >
-                Create Task
-              </button>
-            </form>
-          </section>
-
-          {/* ── Task List ────────────────────────────────────────────── */}
-          <section className="lg:col-span-2 space-y-4">
-            <div className="flex justify-between items-center px-2">
-              <h2 className="text-lg font-semibold text-slate-700">
-                Your Backlog
-              </h2>
-              <div className="flex gap-2">
-                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">
-                  Sort: Newest
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* Loading / not mounted yet */}
-              {!mounted && (
-                <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-2xl">
-                  <p className="text-slate-400 font-medium">Loading...</p>
-                </div>
-              )}
-
-              {/* Empty state */}
-              {mounted && tasks.length === 0 && (
-                <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-2xl">
-                  <div className="text-slate-300 mb-3">
-                    <svg
-                      className="w-12 h-12 mx-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-slate-400 font-medium">
-                    아직 태스크가 없습니다. 새 태스크를 추가해보세요!
-                  </p>
-                </div>
-              )}
-
-              {/* Task cards */}
-              {mounted &&
-                tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`task-card-animate flex items-start gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow ${
-                      task.completed ? "opacity-75" : ""
-                    }`}
-                  >
-                    {/* Checkbox with enlarged touch area (44px) */}
-                    <div className="pt-0.5">
-                      <label className="flex items-center justify-center w-11 h-11 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={() => toggleTask(task.id)}
-                          className="w-6 h-6 rounded-lg text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                        />
-                      </label>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="min-w-0">
-                          <h3
-                            className={`font-bold text-slate-800 truncate ${
-                              task.completed ? "line-through" : ""
-                            }`}
-                          >
-                            {task.title}
-                          </h3>
-                          <p className="text-xs text-indigo-500 font-semibold mb-2">
-                            {task.date}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => requestDelete(task.id)}
-                          className="text-slate-300 hover:text-red-500 transition-colors flex-shrink-0 p-1"
-                          aria-label="태스크 삭제"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      {task.body && (
-                        <p className="text-sm text-slate-600 leading-relaxed break-words">
-                          {task.body}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </section>
         </div>
-      </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center">
-        <p className="text-sm text-slate-400">
-          &copy; 2026 TaskFlow. Built for high performance.
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <div className="flex gap-3 justify-end pt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !name.trim() || !projectPath.trim()}
+            className="px-4 py-2.5 text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+          >
+            {submitting ? "등록 중..." : "등록"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  project,
+  onClose,
+  onConfirm,
+}: {
+  project: Project | null;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!project) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full space-y-4 animate-slideUp">
+        <h3 className="text-lg font-bold text-slate-800">프로젝트를 삭제할까요?</h3>
+        <p className="text-sm text-slate-600">
+          <strong>{project.name}</strong> 프로젝트를 목록에서 제거합니다.<br />
+          실제 파일은 삭제되지 않습니다.
         </p>
-      </footer>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">취소</button>
+          <button onClick={onConfirm} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors">삭제</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      {/* ── Delete Confirmation Dialog ──────────────────────────────── */}
-      {deleteTarget !== null && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 mx-4 max-w-sm w-full space-y-4">
-            <h3 className="text-lg font-bold text-slate-800">
-              태스크를 삭제할까요?
-            </h3>
-            <p className="text-sm text-slate-600">
-              삭제된 태스크는 복구할 수 없습니다.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={cancelDelete}
-                className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-              >
-                취소
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors"
-              >
-                삭제
-              </button>
+// ─── Project Card ─────────────────────────────────────────────────────────────
+
+function ProjectCard({ project, onDelete }: { project: ProjectWithScan; onDelete: (p: Project) => void }) {
+  const colors = COLOR_MAP[project.color] || COLOR_MAP.emerald;
+  const total = project.taskCount || 0;
+  const completed = project.completedCount || 0;
+  const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  const lastStatus = project.latestStatus || "비활성";
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    "완료": { bg: "bg-emerald-50", text: "text-emerald-700" },
+    "승인": { bg: "bg-emerald-50", text: "text-emerald-700" },
+    "진행중": { bg: "bg-purple-50", text: "text-purple-700" },
+    "기획": { bg: "bg-blue-50", text: "text-blue-700" },
+    "반려": { bg: "bg-red-50", text: "text-red-700" },
+    "대기": { bg: "bg-amber-50", text: "text-amber-700" },
+  };
+  const sc = statusColors[lastStatus] || { bg: "bg-slate-50", text: "text-slate-700" };
+
+  return (
+    <div className="task-card-animate bg-white rounded-xl border border-slate-200 p-5 hover:border-primary-300 hover:shadow-md transition-all group relative">
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(project); }}
+        className="absolute top-3 right-3 p-1 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+        aria-label="프로젝트 삭제"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
+
+      <Link href={`/projects/${project.id}`} className="block">
+        <div className="flex items-start justify-between mb-3 pr-6">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-3 h-3 rounded-full ${colors.dot}`} />
+            <h3 className="font-bold text-slate-800 group-hover:text-primary-700 transition-colors">{project.name}</h3>
+          </div>
+          <span className={`text-xs ${sc.bg} ${sc.text} px-2 py-0.5 rounded-full font-medium`}>{lastStatus}</span>
+        </div>
+
+        <p className="text-xs text-slate-400 mb-3 font-mono truncate">{project.path}</p>
+
+        {total > 0 && (
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-slate-400">진행률</span>
+              <span className="font-bold text-primary-600">{completed}/{total}</span>
+            </div>
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className={`h-full ${colors.dot} rounded-full progress-fill-transition`} style={{ width: `${pct}%` }} />
             </div>
           </div>
+        )}
+
+        {project.latestActivity && (
+          <div className="pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+              <span className="text-slate-600 truncate">{project.latestActivity}</span>
+            </div>
+          </div>
+        )}
+      </Link>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function Dashboard() {
+  const [projects, setProjects] = useState<ProjectWithScan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      const res = await fetch("/api/projects");
+      const data: Project[] = await res.json();
+
+      const enriched: ProjectWithScan[] = await Promise.all(
+        data.map(async (p) => {
+          try {
+            const scanRes = await fetch(`/api/projects/${p.id}/scan`);
+            if (!scanRes.ok) return { ...p };
+            const scan = await scanRes.json();
+            const history: TaskEntry[] | null = scan.history;
+
+            let taskCount = 0;
+            let completedCount = 0;
+            let latestActivity = "";
+            let latestStatus = "";
+
+            if (history && history.length > 0) {
+              taskCount = history.length;
+              completedCount = history.filter((t: TaskEntry) => {
+                const last = t.logs[t.logs.length - 1];
+                return last && last.status === "완료";
+              }).length;
+
+              const latest = history[history.length - 1];
+              const lastLog = latest.logs[latest.logs.length - 1];
+              if (lastLog) {
+                latestActivity = `${latest.name || latest.slug} - ${lastLog.phase} ${lastLog.status}`;
+                latestStatus = lastLog.status;
+              }
+            }
+
+            return { ...p, history, taskCount, completedCount, latestActivity, latestStatus };
+          } catch {
+            return { ...p };
+          }
+        })
+      );
+
+      setProjects(enriched);
+    } catch {
+      // silent fail
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const handleProjectCreated = useCallback((_project: Project) => {
+    setTimeout(() => fetchProjects(), 300);
+  }, [fetchProjects]);
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      await fetch(`/api/projects/${deleteTarget.id}`, { method: "DELETE" });
+      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+    } catch {
+      // silent fail
+    }
+    setDeleteTarget(null);
+  }, [deleteTarget]);
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+
+      <main className="flex-1 p-6 sm:p-8 overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">내 프로젝트</h1>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {projects.length > 0 ? `${projects.length}개 프로젝트 관리 중` : "프로젝트를 등록하세요"}
+            </p>
+          </div>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            </svg>
+            <span className="hidden sm:inline">새 프로젝트</span>
+          </button>
         </div>
-      )}
+
+        {loading && (
+          <div className="py-20 text-center">
+            <p className="text-slate-400 font-medium">프로젝트를 불러오는 중...</p>
+          </div>
+        )}
+
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} onDelete={setDeleteTarget} />
+            ))}
+
+            <div
+              onClick={() => setModalOpen(true)}
+              className="border-2 border-dashed border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-slate-400 hover:border-primary-300 hover:text-primary-500 transition-all cursor-pointer min-h-[200px]"
+            >
+              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+              </svg>
+              <span className="text-sm font-medium">새 프로젝트 추가</span>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <AddProjectModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleProjectCreated} />
+      <DeleteConfirmModal project={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} />
     </div>
   );
 }

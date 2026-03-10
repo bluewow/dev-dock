@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TaskFlow - Modern Productivity Dashboard",
-  description: "프로젝트 진행도와 TODO를 시각적으로 관리하는 대시보드",
+  title: "Milestone - Project Management Hub",
+  description: "로컬 프로젝트 관리 + 산출물 뷰어 + 의사결정 기록",
 };
 
 export default function RootLayout({

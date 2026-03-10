@@ -10,5 +10,20 @@
     ],
     "reviews": ["docs/reviews/taskflow-plan.html", "docs/reviews/taskflow-design.html"],
     "spec": "docs/specs/taskflow-spec.md"
+  },
+  {
+    "id": "001-project-hub",
+    "slug": "project-hub",
+    "name": "Project Hub - 로컬 프로젝트 관리 허브",
+    "path": "docs/tasks/001-project-hub",
+    "logs": [
+      { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의) 참여. 화면 플로우, 데이터 모델, API 설계, 우선순위 분류 완료." },
+      { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "디자이너A(트렌드/모던), 디자이너B(안정/실용) 통합안. 사이드바 네비, 카드 UI, 산출물 뷰어 레이아웃 확정." },
+      { "phase": "승인", "status": "승인", "date": "2026-03-10", "note": "사용자 승인 완료. 기획서 + 디자인 시안 전체 승인. P0/P1 항목 1차 구현 진행." },
+      { "phase": "개발", "status": "진행중", "date": "2026-03-10", "note": "프론트개발자 + 백엔드개발자 구현 시작." },
+      { "phase": "개발", "status": "완료", "date": "2026-03-10", "note": "전체 구현 완료. API 7개 + 대시보드 + 상세페이지 + 산출물 뷰어 + 의사결정 기록. 빌드 성공." }
+    ],
+    "reviews": ["docs/tasks/001-project-hub/plan.html", "docs/tasks/001-project-hub/design.html"],
+    "spec": "docs/tasks/001-project-hub/spec.md"
   }
 ]
