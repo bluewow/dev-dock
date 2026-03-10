@@ -51,7 +51,7 @@ class AppSidebar extends ConsumerWidget {
                 if (!collapsed) ...[
                   const SizedBox(width: 10),
                   const Text(
-                    'Milestone',
+                    'Devdock',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,

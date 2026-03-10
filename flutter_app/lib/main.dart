@@ -6,16 +6,16 @@ import 'screens/dashboard_screen.dart';
 import 'screens/project_detail_screen.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MilestoneApp()));
+  runApp(const ProviderScope(child: DevdockApp()));
 }
 
-class MilestoneApp extends StatelessWidget {
-  const MilestoneApp({super.key});
+class DevdockApp extends StatelessWidget {
+  const DevdockApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return FluentApp(
-      title: 'Milestone',
+      title: 'Devdock',
       theme: buildAppTheme(),
       debugShowCheckedModeBanner: false,
       home: const AppShell(),

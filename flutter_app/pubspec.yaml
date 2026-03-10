@@ -1,5 +1,5 @@
-name: milestone_app
-description: "Milestone - 로컬 프로젝트 관리 허브"
+name: devdock
+description: "Devdock - 로컬 프로젝트 관리 허브"
 publish_to: 'none'
 version: 1.0.0+1
 

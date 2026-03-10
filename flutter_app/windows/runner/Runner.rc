@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.milestone" "\0"
-            VALUE "FileDescription", "milestone_app" "\0"
+            VALUE "CompanyName", "com.devdock" "\0"
+            VALUE "FileDescription", "Devdock" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "milestone_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.milestone. All rights reserved." "\0"
-            VALUE "OriginalFilename", "milestone_app.exe" "\0"
-            VALUE "ProductName", "milestone_app" "\0"
+            VALUE "InternalName", "devdock" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.devdock. All rights reserved." "\0"
+            VALUE "OriginalFilename", "devdock.exe" "\0"
+            VALUE "ProductName", "Devdock" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

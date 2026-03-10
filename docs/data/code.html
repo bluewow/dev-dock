@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-slate-50" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskFlow - Modern Productivity Dashboard</title>
+<!-- Tailwind CSS v3 CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style data-purpose="custom-animations">
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .task-card {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    /* Custom filling effect for the arrow */
+    #progress-fill {
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+<style data-purpose="typography">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="h-full text-slate-900">
+<!-- BEGIN: MainLayout -->
+<div class="min-h-full flex flex-col">
+<!-- BEGIN: TopNavigation -->
+<nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-800">TaskFlow</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<div class="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-semibold">
+          JD
+        </div>
+</div>
+</nav>
+<!-- END: TopNavigation -->
+<main class="flex-1 max-w-6xl w-full mx-auto p-8 space-y-12">
+<!-- BEGIN: ProgressSection -->
+<!-- This section uses the arrow design inspired by {{DATA:IMAGE:IMAGE_2}} -->
+<section class="space-y-6 pb-8" data-purpose="progress-visualizer">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-3xl font-bold text-slate-800">Project Momentum</h1>
+<p class="text-slate-500 mt-1">Daily task completion progress</p>
+</div>
+<div class="text-right">
+<span class="text-4xl font-black text-indigo-600" id="progress-percentage">40%</span>
+<p class="text-xs uppercase tracking-widest font-bold text-slate-400">Completed</p>
+</div>
+</div>
+<!-- The Stylized Arrow Progress Bar -->
+<div class="relative h-24 w-full flex items-center"><!-- Background Shape (The 'Empty' Arrow) -->
+<div class="absolute inset-0 bg-slate-200" style="clip-path: polygon(0% 20%, 85% 20%, 85% 0%, 100% 50%, 85% 100%, 85% 80%, 0% 80%);"></div>
+<!-- Foreground Shape (The 'Fill' Arrow with Gradient) -->
+<div class="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" id="progress-fill" style="width: 40%; clip-path: polygon(0% 20%, 85% 20%, 85% 0%, 100% 50%, 85% 100%, 85% 80%, 0% 80%);">
+<!-- Glossy Overlay -->
+<div class="absolute inset-0 bg-white/10 opacity-50"></div>
+</div>
+<!-- Milestones Container -->
+<div class="absolute inset-0 w-full h-full">
+<!-- Milestone 1 -->
+<div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style="left: 15%;">
+<div class="w-3 h-3 rounded-full bg-white border-2 border-indigo-600 shadow-sm"></div>
+<span class="absolute top-12 text-[10px] font-bold text-slate-400 whitespace-nowrap">Oct 1</span>
+</div>
+<!-- Milestone 2 -->
+<div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style="left: 40%;">
+<div class="w-3 h-3 rounded-full bg-white border-2 border-indigo-600 shadow-sm"></div>
+<span class="absolute top-12 text-[10px] font-bold text-slate-400 whitespace-nowrap">Oct 15</span>
+</div>
+<!-- Milestone 3 -->
+<div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style="left: 70%;">
+<div class="w-3 h-3 rounded-full bg-white border-2 border-slate-400 shadow-sm"></div>
+<span class="absolute top-12 text-[10px] font-bold text-slate-400 whitespace-nowrap">Nov 5</span>
+</div>
+<!-- Milestone 4 -->
+<div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style="left: 90%;">
+<div class="w-3 h-3 rounded-full bg-white border-2 border-slate-400 shadow-sm"></div>
+<span class="absolute top-12 text-[10px] font-bold text-slate-400 whitespace-nowrap">Nov 20</span>
+</div>
+</div></div>
+</section>
+<!-- END: ProgressSection -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+<!-- BEGIN: TaskEntryForm -->
+<section class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200" data-purpose="task-creation">
+<h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Add New Task
+          </h2>
+<form class="space-y-4" id="todo-form">
+<div>
+<label class="block text-xs font-bold uppercase text-slate-400 mb-1">Due Date</label>
+<input class="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 text-sm" id="task-date" required="" type="date"/>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase text-slate-400 mb-1">Task Title</label>
+<input class="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 text-sm" id="task-title" placeholder="e.g. Design Review" required="" type="text"/>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase text-slate-400 mb-1">Details</label>
+<textarea class="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 text-sm" id="task-body" placeholder="Describe the task..." rows="3"></textarea>
+</div>
+<button class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 active:scale-[0.98]" type="submit">
+              Create Task
+            </button>
+</form>
+</section>
+<!-- END: TaskEntryForm -->
+<!-- BEGIN: TaskList -->
+<section class="lg:col-span-2 space-y-4" data-purpose="task-listing">
+<div class="flex justify-between items-center px-2">
+<h2 class="text-lg font-semibold text-slate-700">Your Backlog</h2>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">Sort: Newest</span>
+</div>
+</div>
+<div class="space-y-4" id="tasks-container">
+<!-- Tasks will be injected here via JavaScript -->
+<!-- Placeholder for empty state -->
+<div class="py-20 text-center border-2 border-dashed border-slate-200 rounded-2xl" id="empty-state">
+<div class="text-slate-300 mb-3">
+<svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<p class="text-slate-400 font-medium">No tasks yet. Start by adding one!</p>
+</div>
+</div>
+</section>
+<!-- END: TaskList -->
+</div>
+</main>
+<!-- BEGIN: Footer -->
+<footer class="bg-white border-t border-slate-200 py-6 text-center">
+<p class="text-sm text-slate-400">© 2023 TaskFlow Dash. Built for high performance.</p>
+</footer>
+<!-- END: Footer -->
+</div>
+<!-- END: MainLayout -->
+<script data-purpose="task-logic">
+    // State management
+    let tasks = [];
+
+    const todoForm = document.getElementById('todo-form');
+    const tasksContainer = document.getElementById('tasks-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-percentage');
+    const emptyState = document.getElementById('empty-state');
+
+    function updateProgress() {
+      if (tasks.length === 0) {
+        progressFill.style.width = '0%';
+        progressText.innerText = '0%';
+        return;
+      }
+      const completed = tasks.filter(t => t.completed).length;
+      const percent = Math.round((completed / tasks.length) * 100);
+      progressFill.style.width = `${percent}%`;
+      progressText.innerText = `${percent}%`;
+    }
+
+    function renderTasks() {
+      if (tasks.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      // We clear all tasks EXCEPT the empty-state placeholder
+      const taskElements = tasksContainer.querySelectorAll('.task-card');
+      taskElements.forEach(el => el.remove());
+
+      tasks.forEach((task, index) => {
+        const card = document.createElement('div');
+        card.className = `task-card flex items-start gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow ${task.completed ? 'opacity-75' : ''}`;
+        card.setAttribute('data-id', task.id);
+        
+        card.innerHTML = `
+          <div class="pt-1">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                   class="w-6 h-6 rounded-lg text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                   onchange="toggleTask(${task.id})">
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-slate-800 ${task.completed ? 'line-through' : ''}">${task.title}</h3>
+                <p class="text-xs text-indigo-500 font-semibold mb-2">${task.date}</p>
+              </div>
+              <button onclick="deleteTask(${task.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">${task.body}</p>
+          </div>
+        `;
+        
+        tasksContainer.appendChild(card);
+      });
+      
+      updateProgress();
+    }
+
+    window.toggleTask = (id) => {
+      tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+      renderTasks();
+    };
+
+    window.deleteTask = (id) => {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+    };
+
+    todoForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newTask = {
+        id: Date.now(),
+        date: document.getElementById('task-date').value,
+        title: document.getElementById('task-title').value,
+        body: document.getElementById('task-body').value,
+        completed: false
+      };
+
+      tasks.unshift(newTask);
+      todoForm.reset();
+      renderTasks();
+    });
+
+    // Seed data
+    tasks = [
+      { id: 1, date: '2023-11-20', title: 'Research competitors', body: 'Analyze top 3 task management tools and document their onboarding flow.', completed: true },
+      { id: 2, date: '2023-11-22', title: 'Draft system architecture', body: 'Finalize the database schema and API endpoints for the new dashboard.', completed: false }
+    ];
+    renderTasks();
+  </script>
+</body></html>

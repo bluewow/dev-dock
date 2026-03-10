@@ -14,7 +14,7 @@ class ProjectService {
   Future<String> get dataDir async {
     if (_dataDir != null) return _dataDir!;
     final appDir = await getApplicationDocumentsDirectory();
-    _dataDir = p.join(appDir.path, 'Milestone');
+    _dataDir = p.join(appDir.path, 'Devdock');
     final dir = Directory(_dataDir!);
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return _dataDir!;

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LookFit - {{PAGE_TITLE}}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: { DEFAULT:'#7C5A3C', 50:'#FAF5F0', 100:'#F3E8DA', 200:'#E6D0B5', 300:'#D4B48E', 400:'#BF956A', 500:'#A47D5E', 600:'#7C5A3C', 700:'#654A30', 800:'#503B26', 900:'#3D2D1E' },
+        bg: '#F2EDE7', fg: '#2C2420',
+        muted: { DEFAULT:'#EBE5DD', fg:'#9C9590' },
+        card: '#FAF8F5',
+        border: '#E5DDD3',
+        accent: '#8B9A7E',
+      },
+      fontFamily: { serif:['Fraunces','Georgia','serif'] },
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css');
+  body { font-family:'SUIT Variable','SUIT',-apple-system,sans-serif; }
+  .font-serif { font-family:'Fraunces','Georgia',serif; }
+  .soft-card { background:#FAF8F5; border-radius:16px; box-shadow: 6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8); }
+  .soft-pressed { background:#EBE5DD; border-radius:12px; box-shadow: inset 3px 3px 6px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.7); }
+  .soft-btn { background:#7C5A3C; color:#fff; border-radius:12px; box-shadow: 0 4px 12px -2px rgba(124,90,60,0.3); padding:12px 20px; font-size:14px; font-weight:500; }
+  .mobile-frame { width:340px; min-height:600px; border-radius:24px; border:6px solid #2C2420; overflow:hidden; background:#F2EDE7; flex-shrink:0; }
+  .flow-step { display:flex; align-items:center; gap:8px; }
+  .flow-circle { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex-shrink:0; }
+  .flow-arrow { color:#D4B48E; font-size:20px; flex-shrink:0; }
+  .tag { display:inline-block; padding:3px 10px; border-radius:9999px; font-size:11px; font-weight:500; }
+</style>
+</head>
+<body class="bg-bg text-fg">
+
+<div class="max-w-[800px] mx-auto px-5 py-10">
+
+  <!-- Header -->
+  <header class="mb-10">
+    <p class="text-xs uppercase tracking-[0.2em] text-primary mb-2">{{HEADER_CATEGORY}}</p>
+    <h1 class="font-serif text-4xl italic text-fg mb-2">{{HEADER_TITLE}}</h1>
+    <p class="text-sm text-muted-fg">{{HEADER_SUBTITLE}}</p>
+    <p class="text-xs text-muted-fg mt-1">{{DATE}}</p>
+  </header>
+
+  <!-- Problem & Target -->
+  <div class="grid sm:grid-cols-5 gap-4 mb-10">
+    <div class="soft-card p-5 sm:col-span-3">
+      <p class="text-xs uppercase tracking-wider text-primary mb-3">Problem</p>
+      <ul class="text-sm space-y-2 text-fg leading-relaxed">
+        {{PROBLEM_LIST}}
+        <!-- 형식: <li>&#x2022; 문제점 1</li> -->
+      </ul>
+    </div>
+    <div class="soft-card p-5 sm:col-span-2">
+      <p class="text-xs uppercase tracking-wider text-primary mb-3">Target</p>
+      <p class="text-sm"><strong>{{TARGET_USER}}</strong></p>
+      <div class="mt-3 space-y-2 text-xs text-muted-fg">
+        {{TARGET_DETAILS}}
+        <!-- 형식: <p>타겟 설명 1</p> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Features (max 3) -->
+  <div class="grid sm:grid-cols-3 gap-4 mb-10">
+    {{FEATURE_CARDS}}
+    <!-- 형식:
+    <div class="soft-card p-5 text-center">
+      <div class="text-3xl mb-3">EMOJI</div>
+      <h3 class="font-serif text-base font-semibold mb-1">기능명</h3>
+      <p class="text-xs text-muted-fg">한줄 설명</p>
+    </div>
+    -->
+  </div>
+
+  <!-- User Flow -->
+  <div class="soft-card p-6 mb-10">
+    <p class="text-xs uppercase tracking-wider text-primary mb-4">User Flow</p>
+    <div class="flex flex-wrap items-center gap-3">
+      {{FLOW_STEPS}}
+      <!-- 형식:
+      <div class="flow-step">
+        <div class="flow-circle bg-primary text-white">1</div>
+        <span class="text-sm">단계 설명</span>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      -->
+    </div>
+  </div>
+
+  <!-- Wireframe -->
+  <p class="text-xs uppercase tracking-wider text-primary mb-4">Wireframe</p>
+  <div class="flex gap-6 overflow-x-auto pb-4 mb-10">
+    {{WIREFRAME_CONTENT}}
+    <!-- 형식: <div class="mobile-frame"> ... </div> -->
+  </div>
+
+  <!-- Design Direction -->
+  <div class="soft-card p-6 mb-10">
+    <p class="text-xs uppercase tracking-wider text-primary mb-3">Design Direction</p>
+    <div class="flex gap-2 mb-4">
+      {{MOOD_TAGS}}
+      <!-- 형식: <span class="tag bg-primary-100 text-primary">키워드</span> -->
+    </div>
+    <div class="flex gap-3 mb-3">
+      {{COLOR_PALETTE}}
+      <!-- 형식: <div class="w-8 h-8 rounded-lg" style="background:#HEX" title="이름"></div> -->
+    </div>
+    <p class="text-xs text-muted-fg">{{DESIGN_NOTE}}</p>
+  </div>
+
+  <!-- Next -->
+  <div class="soft-card p-5">
+    <p class="text-xs uppercase tracking-wider text-primary mb-3">Next</p>
+    <div class="space-y-2 text-sm">
+      <p><code class="text-xs bg-muted px-2 py-1 rounded">/auto:auto-design</code> {{NEXT_DESIGN_DESC}}</p>
+      <p><code class="text-xs bg-muted px-2 py-1 rounded">/dev:go</code> {{NEXT_DEV_DESC}}</p>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
