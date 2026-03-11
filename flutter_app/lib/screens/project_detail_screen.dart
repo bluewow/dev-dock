@@ -34,11 +34,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   bool _submittingDecision = false;
   bool _showingHistory = false;
   StreamSubscription<FileSystemEvent>? _fileWatcher;
+  StreamSubscription<dynamic>? _webMessageSubscription;
   Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
+    _updateSelectedProject();
     _initWebview();
     _startFileWatcher();
   }
@@ -46,9 +48,37 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   Future<void> _initWebview() async {
     try {
       await _webviewController.initialize();
+      _webMessageSubscription = _webviewController.webMessage.listen(_onWebMessage);
       setState(() => _webviewReady = true);
     } catch (e) {
       debugPrint('WebView init error: $e');
+    }
+  }
+
+  /// 이력 HTML에서 카드 클릭 시 해당 태스크로 이동
+  void _onWebMessage(dynamic message) {
+    final msg = message?.toString() ?? '';
+    if (!msg.startsWith('navigate:')) return;
+    final taskId = msg.substring('navigate:'.length);
+    if (taskId.isEmpty || !mounted) return;
+
+    // 스캔된 태스크 목록에서 매칭되는 slug 찾기
+    final scanAsync = ref.read(projectScanProvider(widget.projectId));
+    final tasks = scanAsync.valueOrNull?.tasks ?? [];
+
+    for (final task in tasks) {
+      if (task.slug.contains(taskId) || taskId.contains(task.slug)) {
+        setState(() {
+          _selectedTaskSlug = task.slug;
+          _showingHistory = false;
+        });
+        // 첫 HTML 파일 자동 열기
+        final htmlFile = task.files.where((f) => f.type == 'html').firstOrNull;
+        if (htmlFile != null) {
+          _openFile(htmlFile, task.slug);
+        }
+        return;
+      }
     }
   }
 
@@ -78,6 +108,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   void dispose() {
     _debounceTimer?.cancel();
     _fileWatcher?.cancel();
+    _webMessageSubscription?.cancel();
     _webviewController.dispose();
     _commentController.dispose();
     super.dispose();
@@ -159,19 +190,33 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant ProjectDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.projectId != widget.projectId) {
+      _updateSelectedProject();
+    }
+  }
+
+  void _updateSelectedProject() {
+    Future(() {
+      if (mounted) {
+        ref.read(selectedProjectIdProvider.notifier).state = widget.projectId;
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(selectedProjectProvider);
     final scanAsync = ref.watch(projectScanProvider(widget.projectId));
 
-    // Set selected project
-    ref.read(selectedProjectIdProvider.notifier).state = widget.projectId;
+    final sc = semanticColors(context);
 
     return projectAsync.when(
       loading: () => const Center(child: ProgressRing()),
       error: (e, _) => Center(child: Text('오류: $e')),
       data: (project) {
         if (project == null) {
-          final sc = semanticColors(context);
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -187,7 +232,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         return scanAsync.when(
           loading: () => const Center(child: ProgressRing()),
           error: (e, _) => Center(child: Text('스캔 오류: $e')),
-          data: (scan) => _buildContent(project, scan.tasks, scan.history),
+          data: (scan) => Container(
+            color: sc.scaffoldBg,
+            child: _buildContent(project, scan.tasks, scan.history),
+          ),
         );
       },
     );

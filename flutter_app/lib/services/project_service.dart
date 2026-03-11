@@ -302,11 +302,20 @@ class ProjectService {
 
     final bg = isDark ? '#0F172A' : '#F8FAFC';
     final cardBg = isDark ? '#1E293B' : '#FFFFFF';
+    final cardHover = isDark ? '#253347' : '#F1F5F9';
     final textPrimary = isDark ? '#F1F5F9' : '#1E293B';
     final textSecondary = isDark ? '#94A3B8' : '#64748B';
     final textTertiary = isDark ? '#64748B' : '#94A3B8';
     final border = isDark ? '#334155' : '#E2E8F0';
     final timelineColor = isDark ? '#334155' : '#C7D2FE';
+
+    // 최신순 정렬 (마지막 로그 날짜 기준)
+    final sorted = List<TaskEntry>.from(history)
+      ..sort((a, b) {
+        final dateA = a.logs.isNotEmpty ? a.logs.last.date : '';
+        final dateB = b.logs.isNotEmpty ? b.logs.last.date : '';
+        return dateB.compareTo(dateA);
+      });
 
     final buffer = StringBuffer();
     buffer.writeln('<!DOCTYPE html>');
@@ -322,21 +331,26 @@ class ProjectService {
     buffer.writeln('.item:last-child { padding-bottom: 0; }');
     buffer.writeln('.dot { position: absolute; left: -24px; top: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid $bg; }');
     buffer.writeln('.date { font-size: 11px; color: $textTertiary; margin-bottom: 6px; }');
-    buffer.writeln('.card { background: $cardBg; border: 1px solid $border; border-radius: 12px; padding: 12px; }');
+    buffer.writeln('.card { background: $cardBg; border: 1px solid $border; border-radius: 12px; padding: 12px; cursor: pointer; transition: background 0.15s; }');
+    buffer.writeln('.card:hover { background: $cardHover; }');
     buffer.writeln('.task-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }');
     buffer.writeln('.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }');
     buffer.writeln('.phases { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }');
     buffer.writeln('.phase { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; }');
     buffer.writeln('.note { font-size: 10px; color: $textTertiary; margin-top: 6px; }');
+    buffer.writeln('.nav-hint { font-size: 9px; color: $textTertiary; margin-top: 8px; opacity: 0; transition: opacity 0.15s; }');
+    buffer.writeln('.card:hover .nav-hint { opacity: 1; }');
     buffer.writeln('</style></head><body>');
 
     buffer.writeln('<div class="header">프로젝트 이력</div>');
-    buffer.writeln('<div class="subtitle">총 ${history.length}개 태스크</div>');
+    buffer.writeln('<div class="subtitle">총 ${history.length}개 태스크 · 최신순</div>');
     buffer.writeln('<div class="timeline">');
 
-    for (final entry in history) {
+    for (final entry in sorted) {
       final lastStatus = entry.lastStatus;
       final dotColor = _statusDotColor(lastStatus);
+      // id가 있으면 id 사용, 없으면 slug 사용 (태스크 폴더명 매칭용)
+      final taskId = entry.id ?? entry.slug;
 
       buffer.writeln('<div class="item">');
       buffer.writeln('<div class="dot" style="background:$dotColor"></div>');
@@ -345,7 +359,7 @@ class ProjectService {
       final lastDate = entry.logs.isNotEmpty ? entry.logs.last.date : '';
       buffer.writeln('<div class="date">$lastDate</div>');
 
-      buffer.writeln('<div class="card">');
+      buffer.writeln('<div class="card" onclick="window.chrome.webview.postMessage(\'navigate:${_escapeHtml(taskId)}\')">');
 
       // 이름 + 상태 배지
       final statusBg = _statusBadgeBg(lastStatus, isDark);
@@ -369,6 +383,8 @@ class ProjectService {
       if (lastNote.isNotEmpty) {
         buffer.writeln('<div class="note">${_escapeHtml(lastNote)}</div>');
       }
+
+      buffer.writeln('<div class="nav-hint">클릭하여 태스크로 이동 →</div>');
 
       buffer.writeln('</div>'); // card
       buffer.writeln('</div>'); // item
