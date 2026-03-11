@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import '../models/project.dart';
 import '../models/task_entry.dart';
 import '../models/scanned_file.dart';
@@ -31,11 +33,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   final _commentController = TextEditingController();
   bool _submittingDecision = false;
   bool _showingHistory = false;
+  StreamSubscription<FileSystemEvent>? _fileWatcher;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     _initWebview();
+    _startFileWatcher();
   }
 
   Future<void> _initWebview() async {
@@ -47,8 +52,32 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
   }
 
+  /// docs/tasks/ 디렉토리를 감시하여 변경 시 스캔을 재실행한다
+  Future<void> _startFileWatcher() async {
+    final service = ref.read(projectServiceProvider);
+    final project = await service.findProject(widget.projectId);
+    if (project == null) return;
+
+    final tasksDir = Directory(p.join(project.path, 'docs', 'tasks'));
+    if (!tasksDir.existsSync()) return;
+
+    _fileWatcher = tasksDir
+        .watch(events: FileSystemEvent.all, recursive: true)
+        .listen((event) {
+      // 디바운스: 짧은 시간 내 다수 이벤트를 하나로 묶는다
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ref.read(scanTriggerProvider.notifier).state++;
+        }
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _fileWatcher?.cancel();
     _webviewController.dispose();
     _commentController.dispose();
     super.dispose();

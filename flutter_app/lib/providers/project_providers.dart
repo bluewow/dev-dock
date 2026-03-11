@@ -55,11 +55,17 @@ final selectedProjectProvider = FutureProvider<Project?>((ref) async {
   return service.findProject(id);
 });
 
+// ─── Scan Trigger (파일 워처에서 증가시켜 재스캔 유도) ─────────────────────────
+
+final scanTriggerProvider = StateProvider<int>((ref) => 0);
+
 // ─── Project Scan ─────────────────────────────────────────────────────────────
 
 final projectScanProvider = FutureProvider.family<
     ({List<ScannedTask> tasks, List<TaskEntry>? history}), String>(
   (ref, projectId) async {
+    // scanTrigger를 watch하여 값 변경 시 자동 재실행
+    ref.watch(scanTriggerProvider);
     final service = ref.read(projectServiceProvider);
     final project = await service.findProject(projectId);
     if (project == null) {
