@@ -16,20 +16,19 @@
 ## 2. 혼자 빠르게 개발할 때 (`/dev`)
 
 ```
-/dev:ask [질문]     분석만 해줘 (코드 안 건드림)
 /dev:build [기능]   구현 계획만 세워줘 (코드 안 건드림)
 /dev:go [기능]      바로 구현해줘 (코드 수정함)
 ```
 
-**추천 흐름:** `/dev:ask` → `/dev:build` → `/dev:go`
+**추천 흐름:** `/dev:build` → `/dev:go`
 **간단한 건:** `/dev:go`만 바로 써도 됩니다
 
 ---
 
-## 3. 아이디어 정리할 때 (`/pm`)
+## 3. 아이디어 정리할 때 (`/dev:pm`)
 
 ```
-/pm:pm 로그인 기능 기획해줘
+/dev:pm 로그인 기능 기획해줘
 ```
 
 Q&A로 아이디어를 정리하고, 1페이지 HTML 기획서를 만들어줍니다.
@@ -113,8 +112,7 @@ docs/tasks/001-login/
 └── .claude/
     ├── commands/          커맨드 정의
     │   ├── init.md
-    │   ├── dev/           ask, build, go
-    │   ├── pm/            pm
+    │   ├── dev/           build, go, pm
     │   └── team/          product
     ├── agents/            에이전트 정의
     │   └── product-team.md

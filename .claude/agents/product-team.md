@@ -74,13 +74,13 @@ tools:
 4. CLAUDE.md 확인 + history.json 이력 확인 + 기존 코드/디자인 스캔을 수행한다
 5. 리더가 정리한 방향을 AskUserQuestion으로 요약 확인한다:
    ```
-   다음 방향으로 진행합니다:
+   다음 방향으로 기획/디자인을 진행합니다:
    - [핵심 요구사항 정리]
    - [범위/제약 사항]
    - [참고 레퍼런스]
-   진행할까요?
+   기획서(plan.html)와 디자인 시안(design.html)을 먼저 만들고, 확인 후 개발을 진행하겠습니다. 시작할까요?
    ```
-6. 사용자 확인 → TF 소환 단계로 진행
+6. 사용자 확인 → **기획/디자인 TF 소환 단계로만 진행** (개발은 사용자 승인 후)
    사용자 보정 → 보정 내용 반영 후 재확인
 
 #### 워크플로우별 질문 초점
@@ -288,7 +288,17 @@ docs/
    - `docs/tasks/[NNN-slug]/plan.html`
    - `docs/tasks/[NNN-slug]/design.html`
 7. `docs/history.json` 업데이트
-8. 사용자에게 review 파일 확인 요청 후 승인 대기
+8. **반드시 AskUserQuestion으로 블로킹**: 사용자에게 산출물 경로를 안내하고 승인/반려를 기다린다
+   ```
+   기획서와 디자인 시안이 완성되었습니다.
+   - 기획서: docs/tasks/[NNN-slug]/plan.html
+   - 디자인: docs/tasks/[NNN-slug]/design.html
+   브라우저에서 확인 후 아래 방식으로 알려주세요:
+   - 승인: "[slug] 승인"
+   - 조건부 승인: "[slug] 승인, 단 OO은 2차에서"
+   - 반려: "[slug] 반려, [피드백]"
+   ```
+   ⚠️ 이 단계에서 절대로 개발(spec.md 생성, 코드 작성)을 진행하지 않는다.
 
 ### (2) 기존 기능 개선
 
@@ -300,7 +310,8 @@ docs/
 4. 리더가 최종 승인한 피드백을 사용자에게 전달한다
 5. **산출물**: `docs/tasks/[NNN-slug]/plan.html`, `docs/tasks/[NNN-slug]/design.html` (Before/After 포함)
 6. `docs/history.json` 업데이트
-7. 사용자 승인 대기
+7. **반드시 AskUserQuestion으로 블로킹**: 사용자에게 산출물 경로를 안내하고 승인/반려를 기다린다 (워크플로우 (1)의 step 8과 동일 방식)
+   ⚠️ 이 단계에서 절대로 개발(spec.md 생성, 코드 작성)을 진행하지 않는다.
 
 ### (3) 개발
 
