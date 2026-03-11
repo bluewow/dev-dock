@@ -41,7 +41,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final sc = semanticColors(context);
+
+    return Container(
+      color: sc.scaffoldBg,
+      child: Row(
       children: [
         // Sidebar (only show full sidebar on dashboard)
         if (_selectedProjectId == null)
@@ -72,6 +76,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 ),
         ),
       ],
+    ),
     );
   }
 }

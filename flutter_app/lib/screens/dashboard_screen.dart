@@ -202,7 +202,7 @@ class _DashboardContent extends ConsumerWidget {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.6,
+                  childAspectRatio: 1.25,
                   children: items,
                 );
               },

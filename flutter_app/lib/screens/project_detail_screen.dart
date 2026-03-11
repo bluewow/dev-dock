@@ -25,13 +25,47 @@ class ProjectDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
 
+/// 산출물 단계 정보 (파일명 → 의미 있는 라벨)
+class _DeliverableStep {
+  final ScannedFile file;
+  final String icon;
+  final String label;
+  final int order;
+  final Color color;
+  final Color colorDark;
+
+  const _DeliverableStep({
+    required this.file,
+    required this.icon,
+    required this.label,
+    required this.order,
+    required this.color,
+    required this.colorDark,
+  });
+
+  /// 파일명 패턴으로 단계 매핑
+  static _DeliverableStep fromFile(ScannedFile file) {
+    final name = file.name.toLowerCase();
+    if (name == 'plan.html') {
+      return _DeliverableStep(file: file, icon: '📋', label: '기획서', order: 1, color: AppColors.blue700, colorDark: AppColors.blue400);
+    } else if (name == 'design.html') {
+      return _DeliverableStep(file: file, icon: '🎨', label: '디자인 시안', order: 2, color: AppColors.purple700, colorDark: AppColors.purple400);
+    } else if (name == 'spec.md') {
+      return _DeliverableStep(file: file, icon: '📄', label: '스펙', order: 3, color: AppColors.emerald700, colorDark: AppColors.emerald400);
+    } else if (name == 'context.md') {
+      return _DeliverableStep(file: file, icon: '📎', label: '컨텍스트', order: 4, color: AppColors.slate500, colorDark: AppColors.slate400);
+    } else {
+      // 기타 파일: 파일명 그대로
+      return _DeliverableStep(file: file, icon: '📑', label: file.name, order: 5, color: AppColors.slate500, colorDark: AppColors.slate400);
+    }
+  }
+}
+
 class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   String? _selectedTaskSlug;
   ScannedFile? _selectedFile;
   final _webviewController = WebviewController();
   bool _webviewReady = false;
-  final _commentController = TextEditingController();
-  bool _submittingDecision = false;
   bool _showingHistory = false;
   StreamSubscription<FileSystemEvent>? _fileWatcher;
   StreamSubscription<dynamic>? _webMessageSubscription;
@@ -55,6 +89,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
   }
 
+
   /// 이력 HTML에서 카드 클릭 시 해당 태스크로 이동
   void _onWebMessage(dynamic message) {
     final msg = message?.toString() ?? '';
@@ -72,10 +107,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           _selectedTaskSlug = task.slug;
           _showingHistory = false;
         });
-        // 첫 HTML 파일 자동 열기
-        final htmlFile = task.files.where((f) => f.type == 'html').firstOrNull;
-        if (htmlFile != null) {
-          _openFile(htmlFile, task.slug);
+        // 단계 순서대로 첫 파일 자동 열기
+        final steps = _getSortedSteps(task);
+        if (steps.isNotEmpty) {
+          _openFile(steps.first.file, task.slug);
         }
         return;
       }
@@ -110,7 +145,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     _fileWatcher?.cancel();
     _webMessageSubscription?.cancel();
     _webviewController.dispose();
-    _commentController.dispose();
     super.dispose();
   }
 
@@ -147,46 +181,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     final uri = Uri.file(tempFile.path);
     await _webviewController.loadUrl(uri.toString());
-  }
-
-  Future<void> _submitDecision(String decision, Project project, List<TaskEntry>? history) async {
-    if (_selectedTaskSlug == null || history == null) return;
-
-    // Find the matching history entry slug
-    String taskSlug = _selectedTaskSlug!;
-    for (final entry in history) {
-      final entryId = entry.id ?? entry.slug;
-      if (_selectedTaskSlug!.contains(entryId) || _selectedTaskSlug!.contains(entry.slug)) {
-        taskSlug = entry.slug;
-        break;
-      }
-    }
-
-    setState(() => _submittingDecision = true);
-
-    try {
-      final service = ref.read(projectServiceProvider);
-      await service.addDecision(
-        projectPath: project.path,
-        taskSlug: taskSlug,
-        decision: decision,
-        note: _commentController.text.trim(),
-      );
-      _commentController.clear();
-      ref.invalidate(projectScanProvider(widget.projectId));
-    } catch (e) {
-      if (mounted) {
-        await displayInfoBar(context, builder: (_, close) {
-          return InfoBar(
-            title: Text('오류: ${e.toString().replaceAll("Exception: ", "")}'),
-            severity: InfoBarSeverity.error,
-            action: IconButton(icon: const Icon(FluentIcons.clear), onPressed: close),
-          );
-        });
-      }
-    }
-
-    setState(() => _submittingDecision = false);
   }
 
   @override
@@ -241,10 +235,23 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     );
   }
 
+  bool _didAutoPreload = false;
+
   Widget _buildContent(Project project, List<ScannedTask> tasks, List<TaskEntry>? history) {
     final sc = semanticColors(context);
     final isDark = FluentTheme.of(context).brightness == Brightness.dark;
     final filter = ref.watch(taskFilterProvider);
+
+    // 스캔 데이터 로드 완료 후 첫 태스크 자동 프리로드
+    if (!_didAutoPreload && _webviewReady && _selectedFile == null && !_showingHistory && tasks.isNotEmpty) {
+      _didAutoPreload = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _selectedFile != null) return;
+        final firstTask = tasks.first;
+        final steps = _getSortedSteps(firstTask);
+        if (steps.isNotEmpty) _openFile(steps.first.file, firstTask.slug);
+      });
+    }
 
     // 필터 적용
     final filteredTasks = tasks.where((task) {
@@ -405,7 +412,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ),
 
         // Right Panel: Viewer
-        Expanded(child: _buildViewer(project, history)),
+        Expanded(child: _buildViewer(project, tasks, history)),
       ],
     );
   }
@@ -438,8 +445,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   _selectedTaskSlug = task.slug;
                   _showingHistory = false;
                 });
-                final htmlFile = task.files.where((f) => f.type == 'html').firstOrNull;
-                if (htmlFile != null) _openFile(htmlFile, task.slug);
+                // 단계 순서대로 정렬된 첫 파일 자동 열기
+                final steps = _getSortedSteps(task);
+                if (steps.isNotEmpty) _openFile(steps.first.file, task.slug);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
@@ -497,62 +505,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       const SizedBox(height: 2),
                       Text(taskName, style: TextStyle(fontSize: 10, color: sc.textTertiary)),
                     ],
-                    const SizedBox(height: 8),
-                    // File chips with icons
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: task.files.map((f) {
-                        final isFileSelected = _selectedFile?.relativePath == f.relativePath;
-                        return GestureDetector(
-                          onTap: () => _openFile(f, task.slug),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: isFileSelected
-                                  ? (isDark ? AppColors.primary500 : AppColors.primary600)
-                                  : f.type == 'html'
-                                      ? (isDark ? AppColors.primary500.withValues(alpha: 0.15) : AppColors.primary50)
-                                      : f.type == 'md'
-                                          ? (isDark ? AppColors.emerald400.withValues(alpha: 0.15) : AppColors.emerald50)
-                                          : sc.hoverBg,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  FluentIcons.document,
-                                  size: 9,
-                                  color: isFileSelected
-                                      ? const Color(0xFFFFFFFF)
-                                      : f.type == 'html'
-                                          ? (isDark ? AppColors.primary400 : AppColors.primary700)
-                                          : f.type == 'md'
-                                              ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
-                                              : sc.textSecondary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  f.name,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: isFileSelected
-                                        ? const Color(0xFFFFFFFF)
-                                        : f.type == 'html'
-                                            ? (isDark ? AppColors.primary400 : AppColors.primary700)
-                                            : f.type == 'md'
-                                                ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
-                                                : sc.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
                   ],
                 ),
               ),
@@ -584,9 +536,27 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }).toList();
   }
 
-  Widget _buildViewer(Project project, List<TaskEntry>? history) {
+  /// 태스크 파일을 단계별로 정렬하여 반환
+  List<_DeliverableStep> _getSortedSteps(ScannedTask task) {
+    final steps = task.files.map(_DeliverableStep.fromFile).toList();
+    steps.sort((a, b) => a.order.compareTo(b.order));
+    return steps;
+  }
+
+  /// 현재 선택된 파일의 단계 인덱스 반환
+  int _currentStepIndex(List<_DeliverableStep> steps) {
+    if (_selectedFile == null) return -1;
+    return steps.indexWhere((s) => s.file.relativePath == _selectedFile!.relativePath);
+  }
+
+  Widget _buildViewer(Project project, List<ScannedTask> tasks, List<TaskEntry>? history) {
     final sc = semanticColors(context);
     final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
+    // 선택된 태스크의 파일 목록
+    final selectedTask = _selectedTaskSlug != null
+        ? tasks.where((t) => t.slug == _selectedTaskSlug).firstOrNull
+        : null;
 
     if (_selectedFile == null && !_showingHistory) {
       return Container(
@@ -599,45 +569,64 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               const SizedBox(height: 16),
               Text('산출물을 선택하세요', style: TextStyle(fontWeight: FontWeight.w600, color: sc.textTertiary)),
               const SizedBox(height: 4),
-              Text('왼쪽 목록에서 파일을 클릭하면 이 영역에 표시됩니다', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
+              Text('왼쪽 목록에서 태스크를 클릭하면 이 영역에 표시됩니다', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
             ],
           ),
         ),
       );
     }
 
+    final steps = selectedTask != null ? _getSortedSteps(selectedTask) : <_DeliverableStep>[];
+    final currentIdx = _currentStepIndex(steps);
+
     return Column(
       children: [
-        // Viewer header
+        // Viewer header: 단계별 흐름 네비게이션
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: sc.cardBg,
             border: Border(bottom: BorderSide(color: sc.border)),
           ),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.primary500.withValues(alpha: 0.2) : AppColors.primary100,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  _showingHistory ? '이력' : (_selectedFile?.name ?? ''),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.primary400 : AppColors.primary700,
+              if (selectedTask != null && !_showingHistory)
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _buildFlowSteps(steps, currentIdx, isDark, sc),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _showingHistory ? '프로젝트 이력 타임라인' : (_selectedTaskSlug ?? ''),
-                style: TextStyle(fontSize: 11, color: sc.textTertiary),
-              ),
-              const Spacer(),
+                )
+              else if (_showingHistory)
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.primary500.withValues(alpha: 0.2) : AppColors.primary100,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '이력',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.primary400 : AppColors.primary700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('프로젝트 이력 타임라인', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
+                    ],
+                  ),
+                )
+              else
+                const Spacer(),
+
+              // Action buttons
               if (!_showingHistory && _selectedFile != null)
                 IconButton(
                   icon: Icon(FluentIcons.open_in_new_window, size: 14, color: sc.textTertiary),
@@ -666,62 +655,123 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               : const Center(child: ProgressRing()),
         ),
 
-        // Decision bar (산출물 보기 시에만)
-        if (_selectedTaskSlug != null && !_showingHistory)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: sc.cardBg,
-              border: Border(top: BorderSide(color: sc.border)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextBox(
-                    controller: _commentController,
-                    placeholder: '코멘트를 입력하세요...',
-                    style: TextStyle(fontSize: 13, color: sc.textPrimary),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Button(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      isDark ? AppColors.rose400.withValues(alpha: 0.15) : AppColors.red50,
-                    ),
-                    foregroundColor: WidgetStatePropertyAll(
-                      isDark ? AppColors.rose400 : AppColors.red600,
-                    ),
-                    padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
-                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  ),
-                  onPressed: _submittingDecision ? null : () => _submitDecision('반려', project, history),
-                  child: Text('반려', style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: isDark ? AppColors.rose400 : AppColors.red600,
-                  )),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(isDark ? AppColors.primary500 : AppColors.primary600),
-                    padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
-                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  ),
-                  onPressed: _submittingDecision ? null : () => _submitDecision('승인', project, history),
-                  child: const Text('승인', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFFFFFFFF))),
-                ),
-              ],
-            ),
-          ),
+        // 이전/다음 네비게이션 바
+        if (!_showingHistory && steps.length > 1 && currentIdx >= 0)
+          _buildPrevNextBar(steps, currentIdx, isDark, sc),
       ],
     );
   }
 
-  // _buildContent에서 사용하는 변수를 멤버로 캐시
-  late Project project;
-  late List<TaskEntry>? history;
+  /// 단계별 흐름 스텝 위젯 목록 생성
+  List<Widget> _buildFlowSteps(List<_DeliverableStep> steps, int currentIdx, bool isDark, AppSemanticColors sc) {
+    final widgets = <Widget>[];
+    for (int i = 0; i < steps.length; i++) {
+      final step = steps[i];
+      final isActive = i == currentIdx;
+      final stepColor = isDark ? step.colorDark : step.color;
+
+      if (i > 0) {
+        // 화살표 구분자
+        widgets.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Text('›', style: TextStyle(fontSize: 14, color: sc.borderSubtle)),
+        ));
+      }
+
+      widgets.add(
+        GestureDetector(
+          onTap: () => _openFile(step.file, _selectedTaskSlug!),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? stepColor.withValues(alpha: isDark ? 0.2 : 0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(step.icon, style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 5),
+                Text(
+                  step.label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                    color: isActive ? stepColor : sc.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  /// 이전/다음 네비게이션 바
+  Widget _buildPrevNextBar(List<_DeliverableStep> steps, int currentIdx, bool isDark, AppSemanticColors sc) {
+    final hasPrev = currentIdx > 0;
+    final hasNext = currentIdx < steps.length - 1;
+    final prevStep = hasPrev ? steps[currentIdx - 1] : null;
+    final nextStep = hasNext ? steps[currentIdx + 1] : null;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: sc.cardBg,
+        border: Border(top: BorderSide(color: sc.border)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 이전
+          if (hasPrev)
+            GestureDetector(
+              onTap: () => _openFile(prevStep.file, _selectedTaskSlug!),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(FluentIcons.chevron_left, size: 10, color: sc.textTertiary),
+                  const SizedBox(width: 4),
+                  Text(prevStep!.icon, style: const TextStyle(fontSize: 11)),
+                  const SizedBox(width: 3),
+                  Text(prevStep.label, style: TextStyle(fontSize: 11, color: sc.textSecondary)),
+                ],
+              ),
+            )
+          else
+            const SizedBox(),
+
+          // 현재 위치
+          Text(
+            '${currentIdx + 1} / ${steps.length}',
+            style: TextStyle(fontSize: 10, color: sc.textTertiary, fontWeight: FontWeight.w500),
+          ),
+
+          // 다음
+          if (hasNext)
+            GestureDetector(
+              onTap: () => _openFile(nextStep.file, _selectedTaskSlug!),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(nextStep!.label, style: TextStyle(fontSize: 11, color: isDark ? nextStep.colorDark : nextStep.color, fontWeight: FontWeight.w500)),
+                  const SizedBox(width: 3),
+                  Text(nextStep.icon, style: const TextStyle(fontSize: 11)),
+                  const SizedBox(width: 4),
+                  Icon(FluentIcons.chevron_right, size: 10, color: isDark ? nextStep.colorDark : nextStep.color),
+                ],
+              ),
+            )
+          else
+            const SizedBox(),
+        ],
+      ),
+    );
+  }
 
   String _getTaskStatus(String slug, List<TaskEntry>? history) {
     if (history == null) return '미확인';
