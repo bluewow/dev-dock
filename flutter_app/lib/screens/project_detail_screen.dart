@@ -250,8 +250,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     final filteredTasks = tasks.where((task) {
       if (filter == '전체') return true;
       final status = _getTaskStatus(task.slug, history);
-      if (filter == '완료') return status == '완료' || status == '승인';
-      if (filter == '진행중') return status != '완료' && status != '승인';
+      if (filter == '완료') return status == '완료' || status == '승인' || status == '조건부승인';
+      if (filter == '진행중') return status != '완료' && status != '승인' && status != '조건부승인';
       return true;
     }).toList();
 
@@ -751,7 +751,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       final id = entry.id ?? entry.slug;
       if (slug.contains(id) || slug.contains(entry.slug)) {
         return entry.logs
-            .where((log) => log.status == '완료' || log.status == '승인')
+            .where((log) => log.status == '완료' || log.status == '승인' || log.status == '조건부승인')
             .map((log) => log.phase)
             .toSet();
       }

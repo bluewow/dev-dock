@@ -136,6 +136,7 @@ class AppColors {
       switch (status) {
         case '완료':
         case '승인':
+        case '조건부승인':
           return emerald400.withValues(alpha: 0.15);
         case '진행중':
           return purple400.withValues(alpha: 0.15);
@@ -152,6 +153,7 @@ class AppColors {
     switch (status) {
       case '완료':
       case '승인':
+      case '조건부승인':
         return emerald50;
       case '진행중':
         return purple50;
@@ -172,6 +174,7 @@ class AppColors {
       switch (status) {
         case '완료':
         case '승인':
+        case '조건부승인':
           return emerald400;
         case '진행중':
           return purple400;
@@ -188,6 +191,7 @@ class AppColors {
     switch (status) {
       case '완료':
       case '승인':
+      case '조건부승인':
         return emerald700;
       case '진행중':
         return purple700;

@@ -413,7 +413,7 @@ class ProjectService {
 
   String _statusDotColor(String status) {
     switch (status) {
-      case '완료': case '승인': return '#34D399';
+      case '완료': case '승인': case '조건부승인': return '#34D399';
       case '진행중': return '#A78BFA';
       case '기획': return '#60A5FA';
       case '반려': return '#FB7185';
@@ -425,7 +425,7 @@ class ProjectService {
   String _statusBadgeBg(String status, bool isDark) {
     if (isDark) {
       switch (status) {
-        case '완료': case '승인': return 'rgba(52,211,153,0.15)';
+        case '완료': case '승인': case '조건부승인': return 'rgba(52,211,153,0.15)';
         case '진행중': return 'rgba(167,139,250,0.15)';
         case '기획': return 'rgba(96,165,250,0.15)';
         case '반려': return 'rgba(251,113,133,0.15)';
@@ -434,7 +434,7 @@ class ProjectService {
       }
     }
     switch (status) {
-      case '완료': case '승인': return '#ECFDF5';
+      case '완료': case '승인': case '조건부승인': return '#ECFDF5';
       case '진행중': return '#F5F3FF';
       case '기획': return '#EFF6FF';
       case '반려': return '#FEF2F2';
@@ -446,7 +446,7 @@ class ProjectService {
   String _statusBadgeColor(String status, bool isDark) {
     if (isDark) {
       switch (status) {
-        case '완료': case '승인': return '#34D399';
+        case '완료': case '승인': case '조건부승인': return '#34D399';
         case '진행중': return '#A78BFA';
         case '기획': return '#60A5FA';
         case '반려': return '#FB7185';
@@ -455,7 +455,7 @@ class ProjectService {
       }
     }
     switch (status) {
-      case '완료': case '승인': return '#047857';
+      case '완료': case '승인': case '조건부승인': return '#047857';
       case '진행중': return '#6D28D9';
       case '기획': return '#1D4ED8';
       case '반려': return '#DC2626';
