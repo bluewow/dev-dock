@@ -56,12 +56,18 @@ class _AppShellState extends ConsumerState<AppShell> {
                 _navIndex = index;
                 _selectedProjectId = null;
               });
+              // 대시보드로 돌아올 때 스캔 캐시 갱신
+              ref.read(scanTriggerProvider.notifier).state++;
             },
           )
         else
           // Collapsed sidebar for detail view
           _CollapsedSidebar(
-            onHomeTap: () => setState(() => _selectedProjectId = null),
+            onHomeTap: () {
+              setState(() => _selectedProjectId = null);
+              // 대시보드로 돌아올 때 스캔 캐시 갱신
+              ref.read(scanTriggerProvider.notifier).state++;
+            },
           ),
 
         // Main content
@@ -69,7 +75,10 @@ class _AppShellState extends ConsumerState<AppShell> {
           child: _selectedProjectId != null
               ? ProjectDetailScreen(
                   projectId: _selectedProjectId!,
-                  onBack: () => setState(() => _selectedProjectId = null),
+                  onBack: () {
+                    setState(() => _selectedProjectId = null);
+                    ref.read(scanTriggerProvider.notifier).state++;
+                  },
                 )
               : DashboardScreen(
                   onProjectTap: (id) => setState(() => _selectedProjectId = id),

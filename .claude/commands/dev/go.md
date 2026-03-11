@@ -75,10 +75,3 @@ Step 2: [작업] - 완료
 구현 완료!
 ```
 
-## UI 변경 리포트 (UI 작업 시)
-
-UI 변경이 포함된 구현의 경우, `docs/reviews/[slug]-dev-result.html` 생성:
-- 변경된 화면/컴포넌트의 Before/After를 CSS/div 목업으로 비교
-- 변경 포인트 목록 + 어떤 기존 컴포넌트를 재사용했는지
-- spec 대비 구현 일치도 체크리스트
-- Tailwind CDN + Pretendard 폰트, 단일 HTML 파일

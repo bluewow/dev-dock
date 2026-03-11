@@ -2,7 +2,7 @@
 ; 설치 프로그램 생성용
 
 #define MyAppName "Devdock"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.1"
 #define MyAppPublisher "Devdock"
 #define MyAppExeName "devdock.exe"
 #define MyAppDescription "로컬 프로젝트 관리 허브"
@@ -39,6 +39,7 @@ Source: "..\flutter_app\build\windows\x64\runner\Release\flutter_windows.dll"; D
 Source: "..\flutter_app\build\windows\x64\runner\Release\WebView2Loader.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\flutter_app\build\windows\x64\runner\Release\webview_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\flutter_app\build\windows\x64\runner\Release\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\.claude\*"; DestDir: "{app}\.claude"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "settings.local.json"
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

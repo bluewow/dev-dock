@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import '../models/task_entry.dart';
 import '../models/scanned_file.dart';
+import '../models/claude_file_entry.dart';
 import '../services/project_service.dart';
 
 // ─── Service Provider ─────────────────────────────────────────────────────────
@@ -91,3 +92,19 @@ final sidebarCollapsedProvider = StateProvider<bool>((ref) => false);
 
 final selectedFileProvider = StateProvider<ScannedFile?>((ref) => null);
 final selectedTaskSlugProvider = StateProvider<String?>((ref) => null);
+
+// ─── Claude Config ───────────────────────────────────────────────────────────
+
+/// .claude 파일 트리 스캔
+final claudeFilesProvider = FutureProvider.family<List<ClaudeFileEntry>, String>(
+  (ref, projectId) async {
+    ref.watch(scanTriggerProvider);
+    final service = ref.read(projectServiceProvider);
+    final project = await service.findProject(projectId);
+    if (project == null) return [];
+    return service.scanClaudeFiles(project.path);
+  },
+);
+
+/// .claude 섹션 접기/펼치기 상태
+final claudeSectionExpandedProvider = StateProvider<bool>((ref) => true);

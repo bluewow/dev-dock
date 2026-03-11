@@ -19,9 +19,20 @@ dist/
 # Claude Code (secrets)
 .claude/settings.local.json
 
+# IDE
+.idea/
+*.iml
+.vscode/
+
 # Misc
 .DS_Store
 Thumbs.db
 *.pem
 *.log
 .env*
+
+# docs reviews (generated HTML reports)
+docs/reviews/
+
+# docs idea (generated HTML specs)
+docs/idea/

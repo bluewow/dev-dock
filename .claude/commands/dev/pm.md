@@ -1,5 +1,5 @@
 ---
-description: 아이디어 기획 + 디자인 방향을 인터랙티브 Q&A로 정리 → 1페이지 HTML
+description: 아이디어 분석 + 디자인 방향을 인터랙티브 Q&A로 정리 → 1페이지 HTML (history.json 자동 기록)
 argument-hint: "<기능 또는 아이디어>"
 ---
 
@@ -7,25 +7,38 @@ argument-hint: "<기능 또는 아이디어>"
 과한 분석(페르소나, 경쟁사, Unit Economics 등)은 하지 않습니다.
 "이 기능이 화면에서 어떻게 보일지"에 집중합니다.
 
+**코드를 수정하지 않습니다. 분석하고 질문합니다.**
+
 ## 사전 준비
 
-1. 루트 CLAUDE.md를 읽고 프로젝트 컨텍스트 파악
+1. 루트 CLAUDE.md를 읽고 프로젝트 컨텍스트, 기술 스택, 구조, 패턴 파악
 2. CLAUDE.md가 없으면 `/init` 실행 안내 후 중단
 3. 멀티 프로젝트인 경우 CLAUDE.md의 Projects 섹션에서 "$ARGUMENTS"가 속한 프로젝트 확인
 4. 스타일 가이드가 있으면 참조 (경로는 CLAUDE.md에 명시됨)
-5. `docs/idea/` 폴더에 기존 기획서가 있으면 목록 확인
+5. `docs/history.json`을 읽어 기존 태스크 목록과 마지막 ID 번호 확인
 
 ## 진행 방식
 
+### Phase 0: 코드베이스 분석
+
+"$ARGUMENTS" 관련 영역을 먼저 분석합니다:
+1. **코드베이스 분석** — 관련 파일/폴더 탐색, 기존 패턴 파악, 영향 범위 확인
+2. **기존 자산 파악** (UI 관련 시)
+   - 재사용 가능한 기존 컴포넌트 목록
+   - 현재 스타일 토큰/변수 (colors, spacing, typography)
+   - 관련 영역의 코딩 패턴 (상태 관리, 데이터 페칭 방식 등)
+3. **요구사항 이해** — 현재 상태와 목표 상태 정리
+
 ### Phase 1: 이해 (인터랙티브 Q&A)
 
-"$ARGUMENTS"에 대해 AskUserQuestion으로 한번에 질문합니다:
+Phase 0 분석 결과를 바탕으로 "$ARGUMENTS"에 대해 AskUserQuestion으로 질문합니다:
 
 1. 이 기능이 해결하는 핵심 문제는? (누가, 언제, 왜 불편한지)
 2. 가장 중요한 핵심 기능 1~2가지는?
 3. 참고하고 싶은 앱/서비스가 있는지? (없으면 없음으로)
+4. 분석 중 모호한 점이 있으면 함께 질문 (가정하지 말 것)
 
-답변이 부족하면 추가 질문을 진행합니다
+답변이 부족하면 충분히 이해될 때까지 추가 질문을 진행합니다
 
 ### Phase 2: 정리 확인
 
@@ -59,25 +72,51 @@ options:
     description: "수정할 내용을 알려주세요"
 ```
 
-### Phase 3: 기존 기획서 확인 & 버전 관리
+### Phase 3: 기존 태스크 확인
 
-`docs/idea/` 폴더에 "$ARGUMENTS"와 유사한 주제의 기획서가 있는지 확인합니다.
-파일명 규칙: `[slug]-v[N].html` (날짜 없음, 버전 번호로 관리)
+`docs/history.json`에서 "$ARGUMENTS"와 유사한 주제의 태스크가 있는지 확인합니다.
 
-- **유사 기획서 있음** (예: `fitting-action-overlay-v1.html`)
-  → AskUserQuestion: "기존 기획서 [파일명]이 있습니다."
-    - 기존 업데이트 → 기존 파일을 읽고 변경 부분 반영하여 같은 파일에 덮어쓰기 (버전 번호 유지)
-    - 새 버전 생성 → 버전 번호를 올려서 새 파일 생성 (예: `fitting-action-overlay-v2.html`). 기존 파일은 그대로 유지 (히스토리)
-- **없음** → Phase 4 진행 (v1부터 시작)
+- **유사 태스크 있음** → AskUserQuestion: "기존 태스크 [name]이 있습니다."
+  - 기존 업데이트 → 해당 태스크 폴더의 idea.html을 덮어쓰기
+  - 새 태스크 생성 → 새 ID로 별도 태스크 생성
+- **없음** → Phase 4 진행
 
-### Phase 4: HTML 산출물 생성
+### Phase 4: HTML 산출물 생성 + history.json 기록
 
+#### 4-1. ID 채번
+`docs/history.json`에서 마지막 ID의 숫자 부분을 확인하고 +1 합니다.
+- 예: 마지막이 `003-claude-installer` → 다음은 `004-[slug]`
+- ID 형식: `[3자리숫자]-[slug]` (예: `004-login-idea`)
+
+#### 4-2. 폴더 생성 + HTML 저장
 1페이지 HTML을 생성합니다.
 
-저장: `docs/idea/[slug]-v[N].html`
-- 신규: `[slug]-v1.html`
-- 새 버전: 기존 최고 버전 +1 (예: v1 → v2)
+저장: `docs/tasks/[ID]-[slug]/idea.html`
 폴더 없으면 생성.
+
+#### 4-3. history.json에 태스크 기록 추가
+`docs/history.json` 배열 끝에 새 엔트리를 추가합니다:
+
+```json
+{
+  "id": "[ID]-[slug]",
+  "slug": "[slug]",
+  "name": "[기능명]",
+  "path": "docs/tasks/[ID]-[slug]",
+  "logs": [
+    {
+      "phase": "분석",
+      "status": "완료",
+      "date": "[오늘 날짜 YYYY-MM-DD]",
+      "note": "[분석 요약 1~2줄]"
+    }
+  ]
+}
+```
+
+**중요:**
+- phase는 반드시 `"분석"`으로 기록 (기획/디자인/승인/개발과 구분)
+- history.json 전체를 Read → JSON 파싱 → 엔트리 추가 → Write (기존 데이터 유지)
 
 ## HTML 구조 (1페이지, 스크롤 최소화)
 
@@ -115,8 +154,8 @@ max-width: 800px, 밝은 배경, 카드 기반 레이아웃.
    - 참고 서비스 언급 (있는 경우)
 
 7. 다음 단계
-   - /design:design sample [기능] → 개선 시안 비교
    - /dev:build 또는 /dev:go [기능] → 바로 구현
+   - /team:product [기능] → Product Team으로 전체 워크플로우 진행
 ```
 
 ## 규칙
@@ -129,10 +168,11 @@ max-width: 800px, 밝은 배경, 카드 기반 레이아웃.
 
 ### HTML 산출물 생성 시 반드시 템플릿 사용
 
-`.claude/commands/pm/idea-template.html` 파일을 **Read 도구로 먼저 읽은 후**, `{{PLACEHOLDER}}` 부분만 실제 데이터로 교체하세요. 처음부터 HTML을 작성하지 마세요.
+`.claude/commands/dev/idea-template.html` 파일을 **Read 도구로 먼저 읽은 후**, `{{PLACEHOLDER}}` 부분만 실제 데이터로 교체하세요. 처음부터 HTML을 작성하지 마세요.
 
 **작업 순서:**
-1. `.claude/commands/pm/idea-template.html` Read
+1. `.claude/commands/dev/idea-template.html` Read
 2. Q&A 결과를 바탕으로 `{{PLACEHOLDER}}` 값 결정
 3. 와이어프레임(`{{WIREFRAME_CONTENT}}`) 영역만 CSS/div로 채움
-4. 완성된 HTML을 `docs/idea/[slug]-v[N].html`에 Write
+4. 완성된 HTML을 `docs/tasks/[ID]-[slug]/idea.html`에 Write
+5. `docs/history.json`을 Read → 엔트리 추가 → Write

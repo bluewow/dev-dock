@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>003 - .claude 설정 배포 및 뷰어 디자인 시안</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif; }
+  .tab-btn { cursor: pointer; transition: all 0.15s; }
+  .tab-btn.active { border-bottom: 2px solid #4F46E5; color: #4F46E5; font-weight: 700; }
+  .tab-btn:not(.active) { color: #94A3B8; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .mockup-frame { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
+  .mockup-dark { background: #0F172A; border-color: #334155; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-6 py-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+          <span class="text-white text-sm font-bold">003</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold text-slate-800">.claude 설정 배포 및 뷰어 - 디자인 시안</h1>
+          <p class="text-xs text-slate-400">2026-03-11 | 디자이너A(트렌드) + 디자이너B(안정) 통합안</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-6 mt-4 border-b border-slate-100 -mb-px">
+      <button class="tab-btn active pb-2 text-sm" data-tab="summary">전체 요약</button>
+      <button class="tab-btn pb-2 text-sm" data-tab="designer-a">디자이너A 시안</button>
+      <button class="tab-btn pb-2 text-sm" data-tab="designer-b">디자이너B 시안</button>
+      <button class="tab-btn pb-2 text-sm" data-tab="final">최종 통합안 목업</button>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- Tab 1: 전체 요약 -->
+  <div class="tab-content active" id="tab-summary">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 긍정 사항 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs">+</div>
+          <span class="text-sm font-bold text-slate-700">긍정 사항</span>
+        </div>
+        <div class="space-y-3 text-xs text-slate-600">
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <span>기존 AddProjectDialog 플로우에 자연스럽게 삽입되어 UX 일관성 유지</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <span>토글 기본값 OFF로 안전한 기본 동작 보장</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <span>기존 .claude 감지 시 경고가 시각적으로 명확 (amber 컬러 활용)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <span>파일 트리 뷰어가 프로젝트 상세의 기존 좌측 패널에 통합되어 공간 효율적</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+            <span>라이트/다크 모드 모두 시맨틱 토큰 기반으로 자연스러운 전환</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 개선/주의 사항 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-xs">!</div>
+          <span class="text-sm font-bold text-slate-700">개선/주의 사항</span>
+        </div>
+        <div class="space-y-3 text-xs text-slate-600">
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>다이얼로그 높이가 늘어나므로 스크롤 필요 여부 체크 (maxHeight 설정)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>.claude 섹션은 태스크 목록 아래에 배치하되 접기/펼치기 가능하게</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>파일 내용 표시 시 WebView 대신 Text 위젯으로 충분 (md/json은 단순 텍스트)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>설치 중 로딩 인디케이터 필요 (파일 복사 시간이 짧더라도)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 최종 판정 -->
+      <div class="lg:col-span-2 bg-indigo-50 rounded-xl border border-indigo-200 p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded">판정</span>
+          <span class="text-sm font-bold text-indigo-700">디자이너A + 디자이너B 통합안 채택</span>
+        </div>
+        <div class="text-xs text-indigo-600 leading-relaxed">
+          디자이너A의 모던한 토글/카드 UI와 디자이너B의 안정적인 파일 트리 패턴을 결합.
+          기존 Fluent UI 패턴(ContentDialog, ToggleSwitch, TreeView 느낌)을 최대한 활용하여 이질감 최소화.
+          .claude 섹션은 접기/펼치기 가능한 ExpansionTile 스타일로 좌측 패널 하단에 배치.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: 디자이너A 시안 (트렌드, 모던) -->
+  <div class="tab-content" id="tab-designer-a">
+    <div class="space-y-8">
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded">디자이너A</span>
+          <span class="text-sm font-bold text-slate-700">모던 / 트렌디 방향</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-6">글래스모피즘 + 그라데이션 강조. 설치 옵션을 시각적으로 화려하게 표현.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 다이얼로그 시안 A -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">프로젝트 추가 다이얼로그</div>
+            <div class="mockup-frame p-4">
+              <div class="bg-white rounded-xl shadow-xl p-5 space-y-4 max-w-sm mx-auto">
+                <div>
+                  <div class="text-sm font-extrabold text-slate-800">새 프로젝트 등록</div>
+                  <div class="text-[11px] text-slate-400">로컬 프로젝트 폴더를 등록하세요</div>
+                </div>
+                <!-- 축약된 기존 필드 -->
+                <div class="space-y-3 opacity-50">
+                  <div class="border border-slate-200 rounded-md px-3 py-2 text-[10px] text-slate-400">프로젝트 이름</div>
+                  <div class="border border-slate-200 rounded-md px-3 py-2 text-[10px] text-slate-400">로컬 경로</div>
+                  <div class="flex gap-1.5">
+                    <div class="w-5 h-5 rounded bg-emerald-400"></div>
+                    <div class="w-5 h-5 rounded bg-blue-400"></div>
+                    <div class="w-5 h-5 rounded bg-purple-400"></div>
+                  </div>
+                </div>
+
+                <!-- 디자이너A 특징: 그라데이션 카드 -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl p-4 text-white">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base">&#9881;</span>
+                      <span class="text-[12px] font-bold">Claude 설정</span>
+                    </div>
+                    <div class="w-10 h-5 bg-white/30 rounded-full relative backdrop-blur">
+                      <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-lg"></div>
+                    </div>
+                  </div>
+                  <div class="text-[9px] text-white/80">커맨드, 에이전트, 훅을 자동 설치합니다</div>
+
+                  <!-- 경고 -->
+                  <div class="mt-3 bg-white/15 backdrop-blur rounded-lg p-2.5">
+                    <div class="text-[10px] font-semibold text-yellow-200">&#9888; 기존 설정 감지됨</div>
+                    <div class="text-[9px] text-white/70 mt-0.5">덮어쓰기 시 기존 설정이 삭제됩니다</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                  <div class="px-3 py-1.5 text-[10px] text-slate-400 border border-slate-200 rounded-md">취소</div>
+                  <div class="px-3 py-1.5 text-[10px] text-white bg-indigo-600 rounded-md font-semibold">등록</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 뷰어 시안 A -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">.claude 뷰어 (좌측 패널)</div>
+            <div class="mockup-frame p-4">
+              <div class="bg-white rounded-xl shadow-xl overflow-hidden max-w-[280px] mx-auto">
+                <!-- 헤더 -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="text-white text-xs">&#9881;</span>
+                      <span class="text-white text-[11px] font-bold">.claude</span>
+                    </div>
+                    <div class="px-1.5 py-0.5 bg-white/20 rounded text-[8px] text-white font-semibold backdrop-blur">설치됨</div>
+                  </div>
+                </div>
+                <!-- 파일 목록 (카드 스타일) -->
+                <div class="p-3 space-y-1.5">
+                  <div class="bg-slate-50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px]">
+                    <span class="text-indigo-500">&#128193;</span>
+                    <span class="font-semibold text-slate-700">commands/</span>
+                    <span class="text-slate-400 ml-auto text-[8px]">7 files</span>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px]">
+                    <span class="text-purple-500">&#128193;</span>
+                    <span class="font-semibold text-slate-700">agents/</span>
+                    <span class="text-slate-400 ml-auto text-[8px]">1 file</span>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px]">
+                    <span class="text-amber-500">&#128193;</span>
+                    <span class="font-semibold text-slate-700">hooks/</span>
+                    <span class="text-slate-400 ml-auto text-[8px]">1 file</span>
+                  </div>
+                  <div class="bg-indigo-50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px] ring-1 ring-indigo-200">
+                    <span class="text-[8px]">&#128196;</span>
+                    <span class="font-semibold text-indigo-700">README.md</span>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px]">
+                    <span class="text-[8px]">&#9881;</span>
+                    <span class="text-slate-600">settings.json</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: 디자이너B 시안 (안정, 실용) -->
+  <div class="tab-content" id="tab-designer-b">
+    <div class="space-y-8">
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">디자이너B</span>
+          <span class="text-sm font-bold text-slate-700">안정 / 실용 방향</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-6">기존 Fluent UI 패턴 준수. 체크박스 + InfoBar 조합으로 친숙한 Windows 네이티브 느낌.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 다이얼로그 시안 B -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">프로젝트 추가 다이얼로그</div>
+            <div class="mockup-frame p-4">
+              <div class="bg-white rounded-xl shadow-lg p-5 space-y-4 max-w-sm mx-auto">
+                <div>
+                  <div class="text-sm font-extrabold text-slate-800">새 프로젝트 등록</div>
+                  <div class="text-[11px] text-slate-400">로컬 프로젝트 폴더를 등록하세요</div>
+                </div>
+                <!-- 축약된 기존 필드 -->
+                <div class="space-y-3 opacity-50">
+                  <div class="border border-slate-200 rounded-md px-3 py-2 text-[10px] text-slate-400">프로젝트 이름</div>
+                  <div class="border border-slate-200 rounded-md px-3 py-2 text-[10px] text-slate-400">로컬 경로</div>
+                  <div class="flex gap-1.5">
+                    <div class="w-5 h-5 rounded bg-emerald-400"></div>
+                    <div class="w-5 h-5 rounded bg-blue-400"></div>
+                    <div class="w-5 h-5 rounded bg-purple-400"></div>
+                  </div>
+                </div>
+
+                <!-- 디자이너B 특징: 체크박스 + 구분선 -->
+                <div class="border-t border-slate-200 pt-4">
+                  <div class="flex items-start gap-3">
+                    <div class="w-4 h-4 rounded border-2 border-indigo-500 bg-indigo-500 flex items-center justify-center mt-0.5 shrink-0">
+                      <span class="text-white text-[8px] font-bold">&#10003;</span>
+                    </div>
+                    <div>
+                      <div class="text-[11px] font-semibold text-slate-700">Claude 설정 설치</div>
+                      <div class="text-[9px] text-slate-400 mt-0.5">명령어, 에이전트, 훅 설정 파일을 프로젝트에 복사합니다</div>
+                    </div>
+                  </div>
+
+                  <!-- InfoBar 스타일 경고 -->
+                  <div class="mt-3 bg-amber-50 border-l-4 border-amber-400 px-3 py-2 rounded-r">
+                    <div class="text-[10px] font-semibold text-amber-800">기존 .claude 폴더 감지</div>
+                    <div class="text-[9px] text-amber-600 mt-0.5">설치 시 기존 폴더를 삭제하고 새로 설치합니다. 계속하시겠습니까?</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                  <div class="px-3 py-1.5 text-[10px] text-slate-400 border border-slate-200 rounded-md">취소</div>
+                  <div class="px-3 py-1.5 text-[10px] text-white bg-indigo-600 rounded-md font-semibold">등록</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 뷰어 시안 B -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">.claude 뷰어 (좌측 패널)</div>
+            <div class="mockup-frame p-4">
+              <div class="bg-white rounded-xl shadow-lg overflow-hidden max-w-[280px] mx-auto">
+                <!-- 접기/펼치기 헤더 -->
+                <div class="px-3 py-2 border-b border-slate-100 flex items-center justify-between cursor-pointer hover:bg-slate-50">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400 text-[10px]">&#9660;</span>
+                    <span class="text-[10px] font-bold text-slate-600">.claude</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-[8px] text-emerald-700 font-semibold">설치됨</span>
+                  </div>
+                </div>
+
+                <!-- 트리뷰 (들여쓰기 기반) -->
+                <div class="px-3 py-2 text-[10px] font-mono space-y-0.5 border-b border-slate-50">
+                  <div class="flex items-center gap-1.5 py-0.5 text-slate-600">
+                    <span class="text-[8px] text-slate-400">&#9654;</span>
+                    <span>commands/</span>
+                    <span class="text-[8px] text-slate-300 ml-auto">7</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-slate-600">
+                    <span class="text-[8px] text-slate-400">&#9654;</span>
+                    <span>agents/</span>
+                    <span class="text-[8px] text-slate-300 ml-auto">1</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-slate-600">
+                    <span class="text-[8px] text-slate-400">&#9654;</span>
+                    <span>hooks/</span>
+                    <span class="text-[8px] text-slate-300 ml-auto">1</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-slate-500 hover:text-indigo-600">
+                    <span class="text-[8px] w-2"></span>
+                    <span>README.md</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-slate-500 hover:text-indigo-600">
+                    <span class="text-[8px] w-2"></span>
+                    <span>settings.json</span>
+                  </div>
+                </div>
+
+                <!-- 미설치 상태 예시 -->
+                <div class="px-3 py-2 border-t border-slate-100">
+                  <div class="text-[9px] text-slate-400 mb-2">미설치 상태 시:</div>
+                  <div class="bg-slate-50 rounded-lg p-3 text-center">
+                    <div class="text-slate-300 text-lg mb-1">&#128736;</div>
+                    <div class="text-[9px] text-slate-400 mb-2">.claude 미설치</div>
+                    <div class="inline-block bg-indigo-600 text-white text-[9px] font-semibold px-3 py-1 rounded-md">설치하기</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: 최종 통합안 목업 -->
+  <div class="tab-content" id="tab-final">
+    <div class="space-y-8">
+
+      <!-- 라이트 모드 전체 목업 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">최종안</span>
+          <span class="text-sm font-bold text-slate-700">라이트 모드 전체 목업</span>
+        </div>
+
+        <!-- 프로젝트 추가 다이얼로그 최종 -->
+        <div class="mb-8">
+          <div class="text-[10px] font-bold text-slate-400 mb-3">1. 프로젝트 추가 다이얼로그</div>
+          <div class="mockup-frame p-6 max-w-lg mx-auto">
+            <div class="bg-white rounded-xl shadow-2xl p-6 space-y-5">
+              <div>
+                <div class="text-base font-extrabold text-slate-800">새 프로젝트 등록</div>
+                <div class="text-xs text-slate-400">로컬 프로젝트 폴더를 등록하세요</div>
+              </div>
+
+              <!-- Name -->
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 mb-1.5">프로젝트 이름</div>
+                <div class="border border-slate-200 rounded-md px-3 py-2.5 text-xs text-slate-700">My Awesome App</div>
+              </div>
+
+              <!-- Path -->
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 mb-1.5">로컬 경로</div>
+                <div class="flex gap-2">
+                  <div class="flex-1 border border-slate-200 rounded-md px-3 py-2.5 text-[11px] text-slate-600 font-mono">C:\project\awesome-app</div>
+                  <div class="bg-indigo-600 text-white text-[11px] font-semibold px-4 py-2.5 rounded-md shrink-0">폴더 선택</div>
+                </div>
+                <div class="flex items-center gap-1.5 mt-2">
+                  <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                  <span class="text-[10px] text-emerald-700">경로 확인됨 - docs/ 폴더 발견</span>
+                </div>
+              </div>
+
+              <!-- Color -->
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 mb-1.5">카드 컬러</div>
+                <div class="flex gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-400 ring-2 ring-indigo-500 ring-offset-1"></div>
+                  <div class="w-8 h-8 rounded-lg bg-blue-400"></div>
+                  <div class="w-8 h-8 rounded-lg bg-purple-400"></div>
+                  <div class="w-8 h-8 rounded-lg bg-amber-400"></div>
+                  <div class="w-8 h-8 rounded-lg bg-rose-400"></div>
+                  <div class="w-8 h-8 rounded-lg bg-slate-400"></div>
+                </div>
+              </div>
+
+              <!-- Claude 설치 (통합: 토글 + 깔끔한 카드) -->
+              <div class="border border-slate-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-md bg-indigo-100 flex items-center justify-center">
+                      <span class="text-indigo-600 text-xs">&#9881;</span>
+                    </div>
+                    <div>
+                      <div class="text-[11px] font-bold text-slate-700">Claude 설정 설치</div>
+                      <div class="text-[9px] text-slate-400">커맨드, 에이전트, 훅 설정을 프로젝트에 설치</div>
+                    </div>
+                  </div>
+                  <!-- ToggleSwitch 스타일 -->
+                  <div class="w-10 h-[22px] bg-indigo-500 rounded-full relative cursor-pointer shrink-0">
+                    <div class="absolute right-[3px] top-[3px] w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                  </div>
+                </div>
+
+                <!-- 기존 .claude 감지 경고 -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 flex items-start gap-2.5">
+                  <div class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <span class="text-amber-600 text-[10px] font-bold">!</span>
+                  </div>
+                  <div>
+                    <div class="text-[10px] font-semibold text-amber-800">기존 .claude 폴더가 감지되었습니다</div>
+                    <div class="text-[9px] text-amber-600 mt-0.5 leading-relaxed">설치를 진행하면 기존 .claude 폴더를 삭제하고 새로 설치합니다.</div>
+                  </div>
+                </div>
+
+                <!-- 설치 내용 미리보기 -->
+                <div class="bg-slate-50 rounded-lg px-3 py-2.5">
+                  <div class="text-[9px] font-semibold text-slate-500 mb-1.5">설치 항목</div>
+                  <div class="grid grid-cols-2 gap-1 text-[9px]">
+                    <div class="flex items-center gap-1 text-slate-600"><span class="text-emerald-500">&#10003;</span> commands/ (7개)</div>
+                    <div class="flex items-center gap-1 text-slate-600"><span class="text-emerald-500">&#10003;</span> agents/ (1개)</div>
+                    <div class="flex items-center gap-1 text-slate-600"><span class="text-emerald-500">&#10003;</span> hooks/ (1개)</div>
+                    <div class="flex items-center gap-1 text-slate-600"><span class="text-emerald-500">&#10003;</span> settings.json</div>
+                    <div class="flex items-center gap-1 text-slate-600"><span class="text-emerald-500">&#10003;</span> README.md</div>
+                    <div class="flex items-center gap-1 text-slate-400"><span class="text-slate-300">&#10005;</span> <span class="line-through">settings.local.json</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <div class="flex justify-end gap-2 pt-1">
+                <div class="px-5 py-2.5 text-xs text-slate-500 border border-slate-200 rounded-md hover:bg-slate-50 cursor-pointer">취소</div>
+                <div class="px-5 py-2.5 text-xs text-white bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 cursor-pointer">등록</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 설치 완료 후 가이드 -->
+        <div class="mb-8">
+          <div class="text-[10px] font-bold text-slate-400 mb-3">2. 설치 완료 후 안내 (InfoBar)</div>
+          <div class="mockup-frame p-6 max-w-lg mx-auto">
+            <div class="space-y-3">
+              <!-- 성공 -->
+              <div class="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 flex items-start gap-3">
+                <div class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <span class="text-emerald-700 text-[10px] font-bold">&#10003;</span>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-emerald-800">.claude 설치 완료 (12개 파일)</div>
+                  <div class="text-[10px] text-emerald-600 mt-1 leading-relaxed">
+                    settings.local.json을 직접 생성해주세요. 아래 항목이 필요합니다:
+                  </div>
+                  <div class="bg-white/60 rounded px-2.5 py-2 mt-2 font-mono text-[9px] text-slate-700">
+                    <div>&#123;</div>
+                    <div class="pl-3">"env": &#123;</div>
+                    <div class="pl-6">"SLACK_WEBHOOK_URL": <span class="text-indigo-600">"your-webhook-url"</span></div>
+                    <div class="pl-3">&#125;</div>
+                    <div>&#125;</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 프로젝트 상세 전체 화면 -->
+        <div>
+          <div class="text-[10px] font-bold text-slate-400 mb-3">3. 프로젝트 상세 - .claude 뷰어 통합</div>
+          <div class="mockup-frame overflow-hidden">
+            <div class="flex" style="height: 480px;">
+              <!-- 좌측 패널 -->
+              <div class="w-[280px] bg-white border-r border-slate-200 flex flex-col shrink-0">
+                <!-- 프로젝트 헤더 -->
+                <div class="px-4 py-3 border-b border-slate-100">
+                  <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                    <span>&#9664;</span> 프로젝트 목록
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-sm font-bold text-slate-800">Awesome App</span>
+                  </div>
+                  <div class="text-[9px] text-slate-400 font-mono mt-0.5">C:/project/awesome-app</div>
+                </div>
+
+                <!-- 태스크 목록 -->
+                <div class="flex-1 overflow-y-auto">
+                  <div class="px-3 py-2 flex items-center justify-between border-b border-slate-50">
+                    <span class="text-[10px] font-bold text-slate-400">태스크 (2)</span>
+                    <div class="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 rounded-md cursor-pointer">
+                      <span class="text-[8px] text-indigo-600">&#128337;</span>
+                      <span class="text-[9px] font-bold text-indigo-600">이력</span>
+                    </div>
+                  </div>
+
+                  <!-- 태스크 카드들 -->
+                  <div class="p-3 space-y-2">
+                    <div class="bg-indigo-50/50 border-2 border-indigo-200 rounded-xl p-3">
+                      <div class="flex items-center justify-between mb-1">
+                        <div class="px-1.5 py-0.5 bg-emerald-50 rounded text-[8px] font-semibold text-emerald-700">완료</div>
+                        <div class="flex gap-0.5">
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                        </div>
+                      </div>
+                      <div class="text-[11px] font-bold text-slate-700">001-login</div>
+                      <div class="text-[9px] text-slate-400">로그인 기능</div>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-3">
+                      <div class="flex items-center justify-between mb-1">
+                        <div class="px-1.5 py-0.5 bg-purple-50 rounded text-[8px] font-semibold text-purple-700">진행중</div>
+                        <div class="flex gap-0.5">
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                          <div class="w-2 h-1 rounded bg-emerald-400"></div>
+                          <div class="w-2 h-1 rounded bg-slate-200"></div>
+                          <div class="w-2 h-1 rounded bg-slate-200"></div>
+                        </div>
+                      </div>
+                      <div class="text-[11px] font-bold text-slate-700">002-dashboard</div>
+                      <div class="text-[9px] text-slate-400">대시보드 기능</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- .claude 섹션 (접기/펼치기) -->
+                <div class="border-t border-slate-200">
+                  <!-- 헤더: 펼침 상태 -->
+                  <div class="px-3 py-2 flex items-center justify-between bg-slate-50/50 cursor-pointer">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-slate-400 text-[10px]">&#9660;</span>
+                      <div class="w-4 h-4 rounded bg-indigo-100 flex items-center justify-center">
+                        <span class="text-indigo-600 text-[8px]">&#9881;</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-slate-600">.claude</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                      <span class="text-[8px] text-emerald-700 font-semibold">설치됨</span>
+                    </div>
+                  </div>
+
+                  <!-- 파일 트리 -->
+                  <div class="px-3 py-2 space-y-0.5 text-[10px] font-mono max-h-[160px] overflow-y-auto">
+                    <div class="flex items-center gap-1.5 py-0.5 text-slate-500 cursor-pointer hover:text-indigo-600">
+                      <span class="text-[8px] text-slate-400">&#9660;</span>
+                      <span class="font-semibold">commands/</span>
+                    </div>
+                    <div class="pl-4 flex items-center gap-1.5 py-0.5 text-slate-500 cursor-pointer hover:text-indigo-600">
+                      <span class="text-[8px]">&#128196;</span>
+                      <span>init.md</span>
+                    </div>
+                    <div class="pl-4 flex items-center gap-1.5 py-0.5 text-slate-400 cursor-pointer">
+                      <span class="text-[8px]">&#9654;</span>
+                      <span class="text-slate-500">dev/</span>
+                    </div>
+                    <div class="pl-4 flex items-center gap-1.5 py-0.5 text-slate-400 cursor-pointer">
+                      <span class="text-[8px]">&#9654;</span>
+                      <span class="text-slate-500">pm/</span>
+                    </div>
+                    <div class="pl-4 flex items-center gap-1.5 py-0.5 text-slate-400 cursor-pointer">
+                      <span class="text-[8px]">&#9654;</span>
+                      <span class="text-slate-500">team/</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 py-0.5 text-slate-400 cursor-pointer">
+                      <span class="text-[8px]">&#9654;</span>
+                      <span class="text-slate-500">agents/</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 py-0.5 text-slate-400 cursor-pointer">
+                      <span class="text-[8px]">&#9654;</span>
+                      <span class="text-slate-500">hooks/</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 py-0.5 bg-indigo-50 -mx-1 px-1 rounded text-indigo-600 cursor-pointer font-semibold">
+                      <span class="text-[8px]">&#128196;</span>
+                      <span>README.md</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 py-0.5 text-slate-500 cursor-pointer hover:text-indigo-600">
+                      <span class="text-[8px]">&#9881;</span>
+                      <span>settings.json</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 우측: WebView 뷰어 (파일 내용 표시) -->
+              <div class="flex-1 flex flex-col bg-slate-50">
+                <!-- 뷰어 헤더 -->
+                <div class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="px-2 py-0.5 bg-indigo-100 rounded text-[10px] font-semibold text-indigo-700">
+                      .claude
+                    </div>
+                    <span class="text-slate-300 text-xs">&#9654;</span>
+                    <span class="text-[11px] font-semibold text-slate-600">README.md</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="w-7 h-7 rounded-md hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+                      <span class="text-slate-400 text-xs">&#128279;</span>
+                    </div>
+                    <div class="w-7 h-7 rounded-md hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+                      <span class="text-slate-400 text-xs">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 파일 내용 (읽기 전용) -->
+                <div class="flex-1 p-6 overflow-y-auto">
+                  <div class="bg-white rounded-lg border border-slate-200 p-5 font-mono text-[11px] text-slate-700 leading-relaxed">
+                    <div class="text-slate-800 font-bold text-sm mb-3"># .claude 사용 설명서</div>
+                    <div class="text-slate-400 mb-4">---</div>
+                    <div class="text-slate-700 font-semibold mb-2">## 1. 처음 시작할 때</div>
+                    <div class="text-slate-500 mb-1">| 명령 | 언제 쓰나요? |</div>
+                    <div class="text-slate-500 mb-1">|:-----|:------------|</div>
+                    <div class="text-slate-500 mb-1">| /init | 이미 있는 프로젝트에서...</div>
+                    <div class="text-slate-500">| /init new | 아예 새 프로젝트를...</div>
+                    <div class="mt-4 text-slate-300 text-center">... (읽기 전용)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 다크 모드 전체 목업 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-0.5 bg-slate-700 text-slate-300 text-[10px] font-bold rounded">최종안</span>
+          <span class="text-sm font-bold text-slate-700">다크 모드 전체 목업</span>
+        </div>
+
+        <!-- 프로젝트 상세 다크 -->
+        <div class="mockup-frame mockup-dark overflow-hidden">
+          <div class="flex" style="height: 480px;">
+            <!-- 좌측 패널 (다크) -->
+            <div class="w-[280px] bg-[#1E293B] border-r border-[#334155] flex flex-col shrink-0">
+              <div class="px-4 py-3 border-b border-[#334155]">
+                <div class="flex items-center gap-1.5 text-[10px] text-[#64748B] mb-1">
+                  <span>&#9664;</span> 프로젝트 목록
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                  <span class="text-sm font-bold text-[#F1F5F9]">Awesome App</span>
+                </div>
+                <div class="text-[9px] text-[#64748B] font-mono mt-0.5">C:/project/awesome-app</div>
+              </div>
+
+              <div class="flex-1 overflow-y-auto">
+                <div class="px-3 py-2 flex items-center justify-between border-b border-[#1E293B]">
+                  <span class="text-[10px] font-bold text-[#64748B]">태스크 (2)</span>
+                </div>
+                <div class="p-3 space-y-2">
+                  <div class="border border-[#334155] rounded-xl p-3">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="px-1.5 py-0.5 bg-emerald-400/15 rounded text-[8px] font-semibold text-emerald-400">완료</div>
+                    </div>
+                    <div class="text-[11px] font-bold text-[#F1F5F9]">001-login</div>
+                  </div>
+                  <div class="border border-[#334155] rounded-xl p-3">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="px-1.5 py-0.5 bg-purple-400/15 rounded text-[8px] font-semibold text-purple-400">진행중</div>
+                    </div>
+                    <div class="text-[11px] font-bold text-[#F1F5F9]">002-dashboard</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- .claude 섹션 (다크) -->
+              <div class="border-t border-[#334155]">
+                <div class="px-3 py-2 flex items-center justify-between cursor-pointer">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[#64748B] text-[10px]">&#9660;</span>
+                    <div class="w-4 h-4 rounded bg-indigo-500/20 flex items-center justify-center">
+                      <span class="text-indigo-400 text-[8px]">&#9881;</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-[#94A3B8]">.claude</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-[8px] text-emerald-400 font-semibold">설치됨</span>
+                  </div>
+                </div>
+                <div class="px-3 py-2 space-y-0.5 text-[10px] font-mono max-h-[160px] overflow-y-auto">
+                  <div class="flex items-center gap-1.5 py-0.5 text-[#94A3B8] cursor-pointer hover:text-indigo-400">
+                    <span class="text-[8px] text-[#64748B]">&#9654;</span>
+                    <span>commands/</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-[#94A3B8] cursor-pointer hover:text-indigo-400">
+                    <span class="text-[8px] text-[#64748B]">&#9654;</span>
+                    <span>agents/</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-[#94A3B8] cursor-pointer hover:text-indigo-400">
+                    <span class="text-[8px] text-[#64748B]">&#9654;</span>
+                    <span>hooks/</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 bg-indigo-500/10 -mx-1 px-1 rounded text-indigo-400 cursor-pointer font-semibold">
+                    <span class="text-[8px]">&#128196;</span>
+                    <span>README.md</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 py-0.5 text-[#94A3B8] cursor-pointer hover:text-indigo-400">
+                    <span class="text-[8px]">&#9881;</span>
+                    <span>settings.json</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 우측 뷰어 (다크) -->
+            <div class="flex-1 flex flex-col bg-[#0F172A]">
+              <div class="bg-[#1E293B] border-b border-[#334155] px-4 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="px-2 py-0.5 bg-indigo-500/20 rounded text-[10px] font-semibold text-indigo-400">
+                    .claude
+                  </div>
+                  <span class="text-[#334155] text-xs">&#9654;</span>
+                  <span class="text-[11px] font-semibold text-[#94A3B8]">README.md</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-7 h-7 rounded-md hover:bg-[#334155] flex items-center justify-center cursor-pointer">
+                    <span class="text-[#64748B] text-xs">&#128279;</span>
+                  </div>
+                  <div class="w-7 h-7 rounded-md hover:bg-[#334155] flex items-center justify-center cursor-pointer">
+                    <span class="text-[#64748B] text-xs">&#10005;</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-1 p-6 overflow-y-auto">
+                <div class="bg-[#1E293B] rounded-lg border border-[#334155] p-5 font-mono text-[11px] text-[#94A3B8] leading-relaxed">
+                  <div class="text-[#F1F5F9] font-bold text-sm mb-3"># .claude 사용 설명서</div>
+                  <div class="text-[#334155] mb-4">---</div>
+                  <div class="text-[#F1F5F9] font-semibold mb-2">## 1. 처음 시작할 때</div>
+                  <div class="text-[#64748B] mb-1">| 명령 | 언제 쓰나요? |</div>
+                  <div class="text-[#64748B] mb-1">|:-----|:------------|</div>
+                  <div class="text-[#64748B] mb-1">| /init | 이미 있는 프로젝트에서...</div>
+                  <div class="text-[#64748B]">| /init new | 아예 새 프로젝트를...</div>
+                  <div class="mt-4 text-[#334155] text-center">... (읽기 전용)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 미설치 상태 목업 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded">보조</span>
+          <span class="text-sm font-bold text-slate-700">미설치 상태 + 설치 버튼</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 라이트 -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">라이트 모드</div>
+            <div class="mockup-frame p-4">
+              <div class="max-w-[280px] mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="border-t border-slate-200">
+                  <div class="px-3 py-2 flex items-center justify-between bg-slate-50/50 cursor-pointer">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-slate-400 text-[10px]">&#9660;</span>
+                      <div class="w-4 h-4 rounded bg-slate-100 flex items-center justify-center">
+                        <span class="text-slate-400 text-[8px]">&#9881;</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-slate-500">.claude</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                      <span class="text-[8px] text-slate-400 font-semibold">미설치</span>
+                    </div>
+                  </div>
+                  <div class="px-3 py-6 text-center">
+                    <div class="text-slate-300 text-2xl mb-2">&#128736;</div>
+                    <div class="text-[10px] text-slate-400 mb-3">.claude 설정이 설치되지 않았습니다</div>
+                    <div class="inline-flex items-center gap-1.5 bg-indigo-600 text-white text-[10px] font-semibold px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
+                      <span class="text-[10px]">&#8595;</span>
+                      설치하기
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 다크 -->
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-2">다크 모드</div>
+            <div class="mockup-frame mockup-dark p-4">
+              <div class="max-w-[280px] mx-auto bg-[#1E293B] rounded-xl shadow-lg overflow-hidden">
+                <div class="border-t border-[#334155]">
+                  <div class="px-3 py-2 flex items-center justify-between cursor-pointer">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[#64748B] text-[10px]">&#9660;</span>
+                      <div class="w-4 h-4 rounded bg-[#334155] flex items-center justify-center">
+                        <span class="text-[#64748B] text-[8px]">&#9881;</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-[#64748B]">.claude</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <div class="w-1.5 h-1.5 rounded-full bg-[#334155]"></div>
+                      <span class="text-[8px] text-[#64748B] font-semibold">미설치</span>
+                    </div>
+                  </div>
+                  <div class="px-3 py-6 text-center">
+                    <div class="text-[#334155] text-2xl mb-2">&#128736;</div>
+                    <div class="text-[10px] text-[#64748B] mb-3">.claude 설정이 설치되지 않았습니다</div>
+                    <div class="inline-flex items-center gap-1.5 bg-indigo-500 text-white text-[10px] font-semibold px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-600">
+                      <span class="text-[10px]">&#8595;</span>
+                      설치하기
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="border-t border-slate-200 mt-12">
+  <div class="max-w-6xl mx-auto px-6 py-4 text-[10px] text-slate-400">
+    Devdock Product Team | 디자이너A(트렌드) + 디자이너B(안정) 통합안 | 2026-03-11
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

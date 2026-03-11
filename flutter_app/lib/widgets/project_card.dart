@@ -244,6 +244,12 @@ class _ProjectCardState extends State<ProjectCard> {
     );
   }
 
+  /// PM 태스크인지 판별 (분석 phase만 있는 경우)
+  bool _isPmTask(TaskEntry entry) {
+    final phases = entry.logs.map((l) => l.phase).toSet();
+    return phases.length == 1 && phases.contains('분석');
+  }
+
   Widget _buildTaskList(AppSemanticColors sc, bool isDark) {
     const allPhases = ['기획', '디자인', '승인', '개발'];
     final entries = widget.history!;
@@ -254,10 +260,7 @@ class _ProjectCardState extends State<ProjectCard> {
         final entry = entries[i];
         final seq = (i + 1).toString().padLeft(3, '0');
         final name = entry.slug;
-        final donePhases = entry.logs
-            .where((l) => l.status == '완료' || l.status == '승인' || l.status == '조건부승인')
-            .map((l) => l.phase)
-            .toSet();
+        final isPm = _isPmTask(entry);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 3),
@@ -276,21 +279,43 @@ class _ProjectCardState extends State<ProjectCard> {
                 ),
               ),
               const SizedBox(width: 6),
-              // 단계별 미니 pill
-              ...allPhases.map((phase) {
-                final done = donePhases.contains(phase);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 1),
-                  child: Container(
-                    width: 6,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: done ? AppColors.emerald400 : (isDark ? AppColors.slate700 : AppColors.slate200),
-                      borderRadius: BorderRadius.circular(1.5),
+              if (isPm)
+                // PM 태스크: "분석" 배지
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.statusBg('분석', isDark: isDark),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    '분석',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.statusText('분석', isDark: isDark),
                     ),
                   ),
-                );
-              }),
+                )
+              else
+                // Product 태스크: 단계별 미니 pill
+                ...allPhases.map((phase) {
+                  final donePhases = entry.logs
+                      .where((l) => l.status == '완료' || l.status == '승인' || l.status == '조건부승인')
+                      .map((l) => l.phase)
+                      .toSet();
+                  final done = donePhases.contains(phase);
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 1),
+                    child: Container(
+                      width: 6,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: done ? AppColors.emerald400 : (isDark ? AppColors.slate700 : AppColors.slate200),
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ),
+                  );
+                }),
             ],
           ),
         );

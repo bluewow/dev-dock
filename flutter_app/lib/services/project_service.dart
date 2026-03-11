@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 import '../models/project.dart';
 import '../models/task_entry.dart';
 import '../models/scanned_file.dart';
+import '../models/claude_file_entry.dart';
+import '../models/claude_install_result.dart';
 
 class ProjectService {
   static const _uuid = Uuid();
@@ -291,6 +293,313 @@ class ProjectService {
     historyFile.writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(history),
     );
+  }
+
+  // ─── Claude Config ──────────────────────────────────────────────────
+
+  /// Devdock 자체 .claude 폴더 경로를 반환한다.
+  /// 실행 파일 기준으로 상위 디렉토리를 탐색하여 .claude 폴더가 있는 루트를 찾는다.
+  String get sourceClaudePath {
+    // 개발 모드: 현재 작업 디렉토리 기반
+    var current = Directory.current.path;
+    // .claude 폴더를 찾을 때까지 상위로 탐색 (최대 5단계)
+    for (var i = 0; i < 5; i++) {
+      final claudeDir = Directory(p.join(current, '.claude'));
+      if (claudeDir.existsSync()) {
+        return claudeDir.path;
+      }
+      final parent = p.dirname(current);
+      if (parent == current) break; // 루트 도달
+      current = parent;
+    }
+
+    // 릴리즈 모드: 실행 파일 기준 탐색
+    final exePath = Platform.resolvedExecutable;
+    current = p.dirname(exePath);
+    for (var i = 0; i < 5; i++) {
+      final claudeDir = Directory(p.join(current, '.claude'));
+      if (claudeDir.existsSync()) {
+        return claudeDir.path;
+      }
+      final parent = p.dirname(current);
+      if (parent == current) break;
+      current = parent;
+    }
+
+    return ''; // 찾지 못한 경우
+  }
+
+  /// 소스 .claude 폴더가 사용 가능한지 확인
+  bool get hasSourceClaude => sourceClaudePath.isNotEmpty;
+
+  /// 대상 프로젝트에 .claude 폴더가 존재하는지 확인
+  bool hasClaudeConfig(String projectPath) {
+    return Directory(p.join(projectPath, '.claude')).existsSync();
+  }
+
+  /// 대상 경로가 Devdock 자체 경로인지 확인 (재귀 방지)
+  bool isDevdockPath(String targetPath) {
+    final normalizedTarget = targetPath.replaceAll('\\', '/').replaceAll(RegExp(r'/+$'), '');
+    final sourcePath = sourceClaudePath;
+    if (sourcePath.isEmpty) return false;
+    // .claude의 부모 디렉토리가 Devdock 루트
+    final devdockRoot = p.dirname(sourcePath).replaceAll('\\', '/').replaceAll(RegExp(r'/+$'), '');
+    return normalizedTarget == devdockRoot;
+  }
+
+  /// .claude 설정을 대상 프로젝트에 설치 (복사)
+  /// settings.local.json은 제외한다.
+  Future<ClaudeInstallResult> installClaude({
+    required String targetPath,
+    bool forceOverwrite = false,
+  }) async {
+    // 1. 재귀 방지
+    if (isDevdockPath(targetPath)) {
+      return const ClaudeInstallResult(
+        success: false,
+        filesCopied: 0,
+        error: 'Devdock 프로젝트에는 설치할 수 없습니다.',
+      );
+    }
+
+    // 2. 소스 확인
+    final source = sourceClaudePath;
+    if (source.isEmpty) {
+      return const ClaudeInstallResult(
+        success: false,
+        filesCopied: 0,
+        error: 'Devdock .claude 소스를 찾을 수 없습니다.',
+      );
+    }
+
+    // 3. 쓰기 권한 검증
+    try {
+      final testFile = File(p.join(targetPath, '.devdock_write_test'));
+      testFile.writeAsStringSync('test');
+      testFile.deleteSync();
+    } catch (_) {
+      return const ClaudeInstallResult(
+        success: false,
+        filesCopied: 0,
+        error: '대상 경로에 쓰기 권한이 없습니다.',
+      );
+    }
+
+    final targetClaudeDir = Directory(p.join(targetPath, '.claude'));
+
+    // 4. 기존 .claude 처리
+    if (targetClaudeDir.existsSync()) {
+      if (!forceOverwrite) {
+        return const ClaudeInstallResult(
+          success: false,
+          filesCopied: 0,
+          error: '기존 .claude 폴더가 존재합니다. 덮어쓰기를 허용하세요.',
+        );
+      }
+      // 기존 폴더 삭제
+      try {
+        targetClaudeDir.deleteSync(recursive: true);
+      } catch (e) {
+        return ClaudeInstallResult(
+          success: false,
+          filesCopied: 0,
+          error: '기존 .claude 폴더 삭제 실패: $e',
+        );
+      }
+    }
+
+    // 5. 복사
+    const excludeFiles = ['settings.local.json'];
+    var filesCopied = 0;
+    final copiedPaths = <String>[];
+
+    try {
+      filesCopied = _copyDirectoryRecursive(
+        Directory(source),
+        targetClaudeDir,
+        excludeFiles,
+        copiedPaths,
+      );
+    } catch (e) {
+      // 부분 복사 롤백
+      if (targetClaudeDir.existsSync()) {
+        try {
+          targetClaudeDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+      return ClaudeInstallResult(
+        success: false,
+        filesCopied: 0,
+        error: '파일 복사 실패: $e',
+      );
+    }
+
+    return ClaudeInstallResult(
+      success: true,
+      filesCopied: filesCopied,
+      excludedFiles: excludeFiles,
+    );
+  }
+
+  /// 디렉토리를 재귀적으로 복사한다. 제외 파일은 건너뛴다.
+  int _copyDirectoryRecursive(
+    Directory source,
+    Directory target,
+    List<String> excludeFiles,
+    List<String> copiedPaths,
+  ) {
+    if (!target.existsSync()) {
+      target.createSync(recursive: true);
+    }
+
+    var count = 0;
+    for (final entity in source.listSync()) {
+      final name = p.basename(entity.path);
+
+      if (entity is File) {
+        if (excludeFiles.contains(name)) continue;
+        final targetFile = File(p.join(target.path, name));
+        entity.copySync(targetFile.path);
+        copiedPaths.add(targetFile.path);
+        count++;
+      } else if (entity is Directory) {
+        final targetSubDir = Directory(p.join(target.path, name));
+        count += _copyDirectoryRecursive(entity, targetSubDir, excludeFiles, copiedPaths);
+      }
+    }
+
+    return count;
+  }
+
+  /// .claude 파일 트리를 스캔하여 반환한다.
+  List<ClaudeFileEntry> scanClaudeFiles(String projectPath) {
+    final claudeDir = Directory(p.join(projectPath, '.claude'));
+    if (!claudeDir.existsSync()) return [];
+    return _scanDirectory(claudeDir, projectPath);
+  }
+
+  /// 디렉토리를 재귀 스캔하여 ClaudeFileEntry 트리를 생성한다.
+  List<ClaudeFileEntry> _scanDirectory(Directory dir, String basePath) {
+    final entries = <ClaudeFileEntry>[];
+
+    final items = dir.listSync()..sort((a, b) {
+      // 디렉토리 먼저, 그 다음 알파벳순
+      final aIsDir = a is Directory;
+      final bIsDir = b is Directory;
+      if (aIsDir != bIsDir) return aIsDir ? -1 : 1;
+      return p.basename(a.path).compareTo(p.basename(b.path));
+    });
+
+    for (final item in items) {
+      final name = p.basename(item.path);
+      final relativePath = p.relative(item.path, from: basePath).replaceAll('\\', '/');
+
+      if (item is Directory) {
+        final children = _scanDirectory(item, basePath);
+        entries.add(ClaudeFileEntry(
+          name: name,
+          relativePath: relativePath,
+          absolutePath: item.path,
+          isDirectory: true,
+          children: children,
+        ));
+      } else if (item is File) {
+        entries.add(ClaudeFileEntry(
+          name: name,
+          relativePath: relativePath,
+          absolutePath: item.path,
+          isDirectory: false,
+        ));
+      }
+    }
+
+    return entries;
+  }
+
+  /// .claude 파일 내용을 읽어 반환한다.
+  String readClaudeFile(String absolutePath) {
+    try {
+      return File(absolutePath).readAsStringSync();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// .claude 파일 내용을 읽기 전용 HTML로 렌더링한다.
+  String generateClaudeFileHtml(String content, String fileName, {bool isDark = false}) {
+    final bg = isDark ? '#0F172A' : '#F8FAFC';
+    final textPrimary = isDark ? '#F1F5F9' : '#1E293B';
+    final textSecondary = isDark ? '#94A3B8' : '#64748B';
+    final border = isDark ? '#334155' : '#E2E8F0';
+    final lineNumColor = isDark ? '#475569' : '#CBD5E1';
+    final headerBg = isDark ? '#1E293B' : '#F1F5F9';
+
+    final escaped = _escapeHtml(content);
+    final lines = escaped.split('\n');
+
+    final buffer = StringBuffer();
+    buffer.writeln('<!DOCTYPE html>');
+    buffer.writeln('<html lang="ko"><head><meta charset="UTF-8">');
+    buffer.writeln('<style>');
+    buffer.writeln('* { font-family: "Pretendard", -apple-system, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }');
+    buffer.writeln('body { background: $bg; color: $textPrimary; }');
+    buffer.writeln('.header { background: $headerBg; border-bottom: 1px solid $border; padding: 12px 20px; display: flex; align-items: center; gap: 8px; }');
+    buffer.writeln('.header .badge { background: ${isDark ? 'rgba(99,102,241,0.2)' : '#EEF2FF'}; color: ${isDark ? '#818CF8' : '#4338CA'}; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }');
+    buffer.writeln('.header .filename { font-size: 12px; font-weight: 600; color: $textSecondary; }');
+    buffer.writeln('.header .readonly { font-size: 9px; color: ${isDark ? '#475569' : '#94A3B8'}; margin-left: auto; }');
+    buffer.writeln('.content { padding: 16px 0; }');
+    buffer.writeln('.line { display: flex; font-family: "Consolas", "Courier New", monospace; font-size: 12px; line-height: 1.8; }');
+    buffer.writeln('.line:hover { background: ${isDark ? '#253347' : '#F8FAFC'}; }');
+    buffer.writeln('.line-num { width: 48px; text-align: right; padding-right: 16px; color: $lineNumColor; user-select: none; flex-shrink: 0; }');
+    buffer.writeln('.line-content { flex: 1; white-space: pre-wrap; word-break: break-all; padding-right: 16px; }');
+    buffer.writeln('</style></head><body>');
+
+    buffer.writeln('<div class="header">');
+    buffer.writeln('<span class="badge">.claude</span>');
+    buffer.writeln('<span class="filename">${_escapeHtml(fileName)}</span>');
+    buffer.writeln('<span class="readonly">읽기 전용</span>');
+    buffer.writeln('</div>');
+
+    buffer.writeln('<div class="content">');
+    for (var i = 0; i < lines.length; i++) {
+      buffer.writeln('<div class="line"><span class="line-num">${i + 1}</span><span class="line-content">${lines[i]}</span></div>');
+    }
+    buffer.writeln('</div>');
+
+    buffer.writeln('</body></html>');
+    return buffer.toString();
+  }
+
+  /// 소스 .claude 폴더의 설치 항목 요약을 반환한다.
+  /// 설치 전 미리보기 및 제외 대상 표시용.
+  ({int totalFiles, List<String> folders, List<String> rootFiles, List<String> excludedFiles}) getClaudeInstallSummary() {
+    final source = sourceClaudePath;
+    if (source.isEmpty) {
+      return (totalFiles: 0, folders: <String>[], rootFiles: <String>[], excludedFiles: <String>[]);
+    }
+
+    const excludeFiles = ['settings.local.json'];
+    final sourceDir = Directory(source);
+    final folders = <String>[];
+    final rootFiles = <String>[];
+    var totalFiles = 0;
+
+    for (final entity in sourceDir.listSync()) {
+      final name = p.basename(entity.path);
+      if (entity is Directory) {
+        // 디렉토리 내 파일 수
+        final count = entity.listSync(recursive: true).whereType<File>().length;
+        folders.add('$name/ ($count개)');
+        totalFiles += count;
+      } else if (entity is File) {
+        if (!excludeFiles.contains(name)) {
+          rootFiles.add(name);
+          totalFiles++;
+        }
+      }
+    }
+
+    return (totalFiles: totalFiles, folders: folders, rootFiles: rootFiles, excludedFiles: excludeFiles);
   }
 
   // ─── History HTML Generation ────────────────────────────────────────

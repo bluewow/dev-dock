@@ -110,6 +110,10 @@ class AppColors {
   static const red500 = Color(0xFFEF4444);
   static const red600 = Color(0xFFDC2626);
 
+  static const cyan50 = Color(0xFFECFEFF);
+  static const cyan400 = Color(0xFF22D3EE);
+  static const cyan700 = Color(0xFF0E7490);
+
   // Color map for project cards
   static Color dotColor(String name) {
     switch (name) {
@@ -142,6 +146,8 @@ class AppColors {
           return purple400.withValues(alpha: 0.15);
         case '기획':
           return blue400.withValues(alpha: 0.15);
+        case '분석':
+          return cyan400.withValues(alpha: 0.15);
         case '반려':
           return rose400.withValues(alpha: 0.15);
         case '대기':
@@ -159,6 +165,8 @@ class AppColors {
         return purple50;
       case '기획':
         return blue50;
+      case '분석':
+        return cyan50;
       case '반려':
         return red50;
       case '대기':
@@ -180,6 +188,8 @@ class AppColors {
           return purple400;
         case '기획':
           return blue400;
+        case '분석':
+          return cyan400;
         case '반려':
           return rose400;
         case '대기':
@@ -197,6 +207,8 @@ class AppColors {
         return purple700;
       case '기획':
         return blue700;
+      case '분석':
+        return cyan700;
       case '반려':
         return red600;
       case '대기':

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>003 - .claude 설정 배포 및 뷰어 기획서</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="max-w-5xl mx-auto px-6 py-4">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+        <span class="text-white text-sm font-bold">003</span>
+      </div>
+      <div>
+        <h1 class="text-lg font-extrabold text-slate-800">.claude 설정 배포 및 뷰어</h1>
+        <p class="text-xs text-slate-400">2026-03-11 | 기획자A(디테일) + 기획자B(창의) + QA 통합안</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-6 py-8 space-y-10">
+
+  <!-- 1. 화면 플로우 -->
+  <section>
+    <h2 class="text-base font-extrabold text-slate-700 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">1</span>
+      화면 플로우
+    </h2>
+
+    <!-- Flow Chart -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 overflow-x-auto">
+      <div class="flex items-start gap-3 min-w-[900px]">
+
+        <!-- Step 1: 대시보드 -->
+        <div class="flex flex-col items-center w-36 shrink-0">
+          <div class="w-full bg-indigo-50 border-2 border-indigo-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-indigo-700">대시보드</div>
+            <div class="text-[10px] text-indigo-500 mt-1">"새 프로젝트" 클릭</div>
+          </div>
+        </div>
+
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+
+        <!-- Step 2: 프로젝트 추가 다이얼로그 -->
+        <div class="flex flex-col items-center w-44 shrink-0">
+          <div class="w-full bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-blue-700">프로젝트 추가</div>
+            <div class="text-[10px] text-blue-500 mt-1">이름 / 경로 / 컬러</div>
+            <div class="text-[10px] text-blue-600 font-semibold mt-1">[신규] .claude 설치 토글</div>
+          </div>
+        </div>
+
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+
+        <!-- Step 3: 분기 -->
+        <div class="flex flex-col items-center w-48 shrink-0">
+          <div class="w-full bg-amber-50 border-2 border-amber-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-amber-700">경로 검증</div>
+            <div class="text-[10px] text-amber-600 mt-1">기존 .claude 존재 여부 확인</div>
+          </div>
+          <!-- 분기 화살표 -->
+          <div class="flex gap-6 mt-3">
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-emerald-300"></div>
+              <div class="bg-emerald-50 border border-emerald-200 rounded px-2 py-1">
+                <div class="text-[9px] text-emerald-700 font-semibold">없음</div>
+              </div>
+              <div class="text-[8px] text-emerald-600 mt-1">바로 설치</div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-red-300"></div>
+              <div class="bg-red-50 border border-red-200 rounded px-2 py-1">
+                <div class="text-[9px] text-red-700 font-semibold">있음</div>
+              </div>
+              <div class="text-[8px] text-red-600 mt-1">확인 다이얼로그</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+
+        <!-- Step 4: 설치 -->
+        <div class="flex flex-col items-center w-40 shrink-0">
+          <div class="w-full bg-purple-50 border-2 border-purple-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-purple-700">.claude 복사</div>
+            <div class="text-[10px] text-purple-500 mt-1">settings.local.json 제외</div>
+            <div class="text-[10px] text-purple-500">재귀 방지 체크</div>
+          </div>
+        </div>
+
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+
+        <!-- Step 5: 완료 -->
+        <div class="flex flex-col items-center w-44 shrink-0">
+          <div class="w-full bg-emerald-50 border-2 border-emerald-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-emerald-700">등록 완료</div>
+            <div class="text-[10px] text-emerald-500 mt-1">설치 결과 + 가이드</div>
+            <div class="text-[10px] text-emerald-600 font-semibold mt-1">settings.local.json 안내</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 상세 뷰어 플로우 -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 mt-4 overflow-x-auto">
+      <div class="text-xs font-bold text-slate-500 mb-3">프로젝트 상세 - .claude 뷰어 플로우</div>
+      <div class="flex items-start gap-3 min-w-[600px]">
+        <div class="flex flex-col items-center w-36 shrink-0">
+          <div class="w-full bg-indigo-50 border-2 border-indigo-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-indigo-700">프로젝트 상세</div>
+            <div class="text-[10px] text-indigo-500 mt-1">좌측 패널 하단</div>
+          </div>
+        </div>
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+        <div class="flex flex-col items-center w-40 shrink-0">
+          <div class="w-full bg-blue-50 border-2 border-blue-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-blue-700">.claude 섹션</div>
+            <div class="text-[10px] text-blue-500 mt-1">파일 트리 표시</div>
+          </div>
+          <div class="flex gap-6 mt-3">
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-emerald-300"></div>
+              <div class="bg-emerald-50 border border-emerald-200 rounded px-2 py-1">
+                <div class="text-[9px] text-emerald-700">설치됨</div>
+              </div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+              <div class="bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                <div class="text-[9px] text-slate-500">미설치</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center pt-4 shrink-0">
+          <div class="w-8 h-0.5 bg-slate-300"></div>
+          <div class="text-slate-400 text-xs">&#9654;</div>
+        </div>
+        <div class="flex flex-col items-center w-44 shrink-0">
+          <div class="w-full bg-purple-50 border-2 border-purple-200 rounded-lg p-3 text-center">
+            <div class="text-xs font-bold text-purple-700">파일 클릭</div>
+            <div class="text-[10px] text-purple-500 mt-1">우측 WebView에</div>
+            <div class="text-[10px] text-purple-500">읽기 전용 내용 표시</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 화면 구성 (모바일 목업) -->
+  <section>
+    <h2 class="text-base font-extrabold text-slate-700 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">2</span>
+      핵심 화면 구성
+    </h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 목업 1: AddProjectDialog 변경 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="text-xs font-bold text-slate-500 mb-3">프로젝트 추가 다이얼로그 (변경)</div>
+        <div class="bg-slate-100 rounded-lg p-4 mx-auto" style="max-width: 390px;">
+          <!-- Mock Dialog -->
+          <div class="bg-white rounded-xl shadow-lg p-5 space-y-4">
+            <div>
+              <div class="text-sm font-extrabold text-slate-800">새 프로젝트 등록</div>
+              <div class="text-[11px] text-slate-400">로컬 프로젝트 폴더를 등록하세요</div>
+            </div>
+
+            <!-- Name -->
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 mb-1">프로젝트 이름</div>
+              <div class="border border-slate-200 rounded-md px-3 py-2 text-xs text-slate-300">예: My Project</div>
+            </div>
+
+            <!-- Path -->
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 mb-1">로컬 경로</div>
+              <div class="flex gap-2">
+                <div class="flex-1 border border-slate-200 rounded-md px-3 py-2 text-[11px] text-slate-600 font-mono">C:\project\my-app</div>
+                <div class="bg-indigo-600 text-white text-[10px] font-semibold px-3 py-2 rounded-md">폴더 선택</div>
+              </div>
+              <!-- Validation -->
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                <span class="text-[10px] text-emerald-700">경로 확인됨 - docs/ 폴더 발견</span>
+              </div>
+            </div>
+
+            <!-- Color -->
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 mb-1">카드 컬러</div>
+              <div class="flex gap-2">
+                <div class="w-7 h-7 rounded-lg bg-emerald-400 ring-2 ring-indigo-500"></div>
+                <div class="w-7 h-7 rounded-lg bg-blue-400"></div>
+                <div class="w-7 h-7 rounded-lg bg-purple-400"></div>
+                <div class="w-7 h-7 rounded-lg bg-amber-400"></div>
+                <div class="w-7 h-7 rounded-lg bg-rose-400"></div>
+                <div class="w-7 h-7 rounded-lg bg-slate-400"></div>
+              </div>
+            </div>
+
+            <!-- NEW: Claude 설치 옵션 -->
+            <div class="border-2 border-indigo-200 bg-indigo-50/50 rounded-lg p-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">&#128736;</span>
+                  <span class="text-[11px] font-bold text-indigo-700">Claude 설정 설치</span>
+                </div>
+                <!-- Toggle -->
+                <div class="w-9 h-5 bg-indigo-500 rounded-full relative">
+                  <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow"></div>
+                </div>
+              </div>
+              <div class="text-[9px] text-indigo-500 leading-relaxed">
+                명령어, 에이전트, 훅 등 .claude 설정을 프로젝트에 설치합니다.
+              </div>
+              <!-- 기존 .claude 감지 시 경고 -->
+              <div class="bg-amber-50 border border-amber-200 rounded-md p-2 flex items-start gap-2">
+                <span class="text-xs mt-0.5">&#9888;&#65039;</span>
+                <div>
+                  <div class="text-[10px] font-semibold text-amber-700">기존 .claude 폴더가 감지되었습니다</div>
+                  <div class="text-[9px] text-amber-600 mt-0.5">설치 시 기존 .claude 폴더가 삭제됩니다.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-2 pt-1">
+              <div class="px-4 py-2 text-xs text-slate-500 border border-slate-200 rounded-md">취소</div>
+              <div class="px-4 py-2 text-xs text-white bg-indigo-600 rounded-md font-semibold">등록</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 목업 2: 프로젝트 상세 - .claude 뷰어 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="text-xs font-bold text-slate-500 mb-3">프로젝트 상세 - .claude 뷰어 (좌측 패널)</div>
+        <div class="bg-slate-100 rounded-lg p-4 mx-auto" style="max-width: 390px;">
+          <div class="bg-white rounded-xl shadow-lg overflow-hidden" style="width: 280px; margin: 0 auto;">
+            <!-- 태스크 헤더 (축소) -->
+            <div class="px-3 py-2 border-b border-slate-100">
+              <div class="text-[10px] font-bold text-slate-400">태스크 (3)</div>
+            </div>
+            <!-- 태스크 1개 예시 (축소) -->
+            <div class="px-3 py-2 border-b border-slate-50">
+              <div class="flex items-center gap-1.5">
+                <div class="px-1.5 py-0.5 bg-emerald-50 rounded text-[8px] font-semibold text-emerald-700">완료</div>
+                <span class="text-[10px] font-semibold text-slate-700">001-project-hub</span>
+              </div>
+            </div>
+
+            <!-- NEW: .claude 섹션 -->
+            <div class="border-t-2 border-indigo-100">
+              <div class="px-3 py-2 flex items-center justify-between bg-indigo-50/50">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px]">&#128736;</span>
+                  <span class="text-[10px] font-bold text-indigo-700">.claude</span>
+                </div>
+                <div class="px-1.5 py-0.5 bg-emerald-50 rounded text-[8px] font-semibold text-emerald-700">설치됨</div>
+              </div>
+
+              <!-- 파일 트리 -->
+              <div class="px-3 py-2 space-y-1 text-[10px] font-mono">
+                <div class="flex items-center gap-1 text-slate-400">
+                  <span>&#9660;</span>
+                  <span class="font-semibold text-slate-600">commands/</span>
+                </div>
+                <div class="pl-4 flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#128196;</span> init.md
+                </div>
+                <div class="pl-4 flex items-center gap-1 text-slate-400">
+                  <span>&#9660;</span>
+                  <span class="text-slate-500">dev/</span>
+                </div>
+                <div class="pl-8 flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#128196;</span> ask.md
+                </div>
+                <div class="pl-8 flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#128196;</span> build.md
+                </div>
+                <div class="pl-8 flex items-center gap-1 text-indigo-600 bg-indigo-50 -mx-1 px-1 rounded font-semibold">
+                  <span class="text-[8px]">&#128196;</span> go.md
+                </div>
+                <div class="flex items-center gap-1 text-slate-400">
+                  <span>&#9660;</span>
+                  <span class="font-semibold text-slate-600">agents/</span>
+                </div>
+                <div class="pl-4 flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#128196;</span> product-team.md
+                </div>
+                <div class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#128196;</span> README.md
+                </div>
+                <div class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 cursor-pointer">
+                  <span class="text-[8px]">&#9881;</span> settings.json
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 데이터 모델 -->
+  <section>
+    <h2 class="text-base font-extrabold text-slate-700 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">3</span>
+      데이터 모델 / 서비스 변경
+    </h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 모델 변경 없음 안내 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div class="text-xs font-bold text-slate-500 mb-3">Project 모델 (변경 없음)</div>
+        <pre class="bg-slate-900 text-slate-100 rounded-lg p-4 text-[11px] leading-relaxed overflow-x-auto"><code>// 기존 Project 모델 유지
+// .claude 설치 여부는 파일 시스템 감지로 판단
+// (모델에 필드 추가 불필요)
+class Project {
+  final String id;
+  final String name;
+  final String path;    // 이 경로 하위에 .claude 존재 여부 확인
+  final String color;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+}</code></pre>
+      </div>
+
+      <!-- ProjectService 확장 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div class="text-xs font-bold text-slate-500 mb-3">ProjectService 확장 (신규 메서드)</div>
+        <pre class="bg-slate-900 text-slate-100 rounded-lg p-4 text-[11px] leading-relaxed overflow-x-auto"><code>// .claude 관련 신규 메서드
+class ProjectService {
+  // 기존 메서드 유지...
+
+  // Devdock 자체 .claude 경로 반환
+  String get sourceClaudePath;
+
+  // 대상 프로젝트에 .claude 존재 여부
+  bool hasClaudeConfig(String projectPath);
+
+  // .claude 설치 (settings.local.json 제외)
+  Future&lt;ClaudeInstallResult&gt; installClaude({
+    required String targetPath,
+    bool forceOverwrite = false,
+  });
+
+  // .claude 파일 트리 스캔
+  List&lt;ClaudeFileEntry&gt; scanClaudeFiles(
+    String projectPath,
+  );
+
+  // .claude 파일 내용 읽기
+  String readClaudeFile(String absolutePath);
+}
+
+// 설치 결과
+class ClaudeInstallResult {
+  final bool success;
+  final int filesCopied;
+  final String? error;
+  final List&lt;String&gt; excludedFiles;
+  // settings.local.json 가이드
+  final String localSettingsGuide;
+}
+
+// 파일 트리 엔트리
+class ClaudeFileEntry {
+  final String name;
+  final String relativePath;
+  final String absolutePath;
+  final bool isDirectory;
+  final List&lt;ClaudeFileEntry&gt; children;
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 우선순위 -->
+  <section>
+    <h2 class="text-base font-extrabold text-slate-700 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">4</span>
+      우선순위
+    </h2>
+
+    <div class="space-y-3">
+      <!-- P0 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded">P0</span>
+          <span class="text-xs font-bold text-slate-700">필수 구현</span>
+        </div>
+        <div class="space-y-2 text-xs text-slate-600">
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <span>AddProjectDialog에 .claude 설치 토글 추가</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <span>기존 .claude 존재 시 삭제 확인 다이얼로그</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <span>ProjectService에 .claude 복사 로직 (settings.local.json 제외)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <span>Devdock 자체 경로에 대한 재귀 설치 방지</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div>
+            <span>설치 결과 피드백 (성공/실패 메시지)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P1 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded">P1</span>
+          <span class="text-xs font-bold text-slate-700">1차 구현</span>
+        </div>
+        <div class="space-y-2 text-xs text-slate-600">
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>프로젝트 상세 좌측 패널에 .claude 파일 트리 뷰어</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>파일 클릭 시 WebView에 읽기 전용 내용 표시</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>settings.local.json 가이드 메시지 (필요한 값 설명)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+            <span>미설치 상태에서 설치 버튼 제공</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P2 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">P2</span>
+          <span class="text-xs font-bold text-slate-700">2차 구현 (추후)</span>
+        </div>
+        <div class="space-y-2 text-xs text-slate-600">
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0"></div>
+            <span>프로젝트 카드에 .claude 설치 상태 배지 표시</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0"></div>
+            <span>.claude 파일 내용 syntax highlighting (코드 하이라이팅)</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0"></div>
+            <span>설치된 .claude와 마스터 템플릿 간 버전 비교 (차이점 표시)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. QA 체크 포인트 -->
+  <section>
+    <h2 class="text-base font-extrabold text-slate-700 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">5</span>
+      QA 체크 포인트 (놓친 점 검토)
+    </h2>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded shrink-0 mt-0.5">필수</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">재귀 설치 방지</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Devdock 프로젝트 자체를 등록할 때 .claude를 자기 자신에게 설치하면 안 됨. 경로 비교로 차단.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded shrink-0 mt-0.5">필수</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">쓰기 권한 검증</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">대상 경로에 쓰기 권한이 없으면 설치 실패. 사전에 권한 체크 후 안내.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold rounded shrink-0 mt-0.5">주의</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">settings.local.json 가이드</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">설치 후 사용자가 settings.local.json을 직접 생성해야 함. 어떤 키(env.SLACK_WEBHOOK_URL 등)가 필요한지 명확히 안내.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold rounded shrink-0 mt-0.5">주의</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">설치 토글 기본값</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">기본값은 OFF. 사용자가 의도적으로 켜야 설치 진행. 실수로 기존 .claude를 덮어쓰는 것 방지.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded shrink-0 mt-0.5">참고</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">파일 목록에서 제외 대상 시각화</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">뷰어에서 settings.local.json은 "배포 제외" 표시를 하여 사용자에게 명확히 인지.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded shrink-0 mt-0.5">참고</div>
+          <div>
+            <div class="text-xs font-semibold text-slate-700">대시보드 카드에 .claude 상태</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">프로젝트 카드에 작은 아이콘으로 .claude 설치 여부를 표시하면 관리 편의성 증가. (P2)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<div class="border-t border-slate-200 mt-12">
+  <div class="max-w-5xl mx-auto px-6 py-4 text-[10px] text-slate-400">
+    Devdock Product Team | 기획자A(디테일) + 기획자B(창의) + QA 통합안 | 2026-03-11
+  </div>
+</div>
+
+</body>
+</html>
