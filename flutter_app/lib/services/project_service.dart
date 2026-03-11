@@ -308,6 +308,11 @@ class ProjectService {
     final textTertiary = isDark ? '#64748B' : '#94A3B8';
     final border = isDark ? '#334155' : '#E2E8F0';
     final timelineColor = isDark ? '#334155' : '#C7D2FE';
+    final changePlus = isDark ? '#34D399' : '#047857';
+    final decisionBg = isDark ? 'rgba(251,191,36,0.15)' : '#FFFBEB';
+    final decisionColor = isDark ? '#FBBF24' : '#B45309';
+    final barDone = '#34D399';
+    final barPending = isDark ? '#334155' : '#E2E8F0';
 
     // 최신순 정렬 (마지막 로그 날짜 기준)
     final sorted = List<TaskEntry>.from(history)
@@ -327,17 +332,26 @@ class ProjectService {
     buffer.writeln('.subtitle { font-size: 12px; color: $textSecondary; margin-bottom: 24px; }');
     buffer.writeln('.timeline { position: relative; padding-left: 24px; }');
     buffer.writeln('.timeline::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: $timelineColor; }');
-    buffer.writeln('.item { position: relative; padding-bottom: 24px; }');
+    buffer.writeln('.item { position: relative; padding-bottom: 20px; }');
     buffer.writeln('.item:last-child { padding-bottom: 0; }');
     buffer.writeln('.dot { position: absolute; left: -24px; top: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid $bg; }');
-    buffer.writeln('.date { font-size: 11px; color: $textTertiary; margin-bottom: 6px; }');
-    buffer.writeln('.card { background: $cardBg; border: 1px solid $border; border-radius: 12px; padding: 12px; cursor: pointer; transition: background 0.15s; }');
+    buffer.writeln('.card { background: $cardBg; border: 1px solid $border; border-radius: 12px; padding: 14px; cursor: pointer; transition: background 0.15s; }');
     buffer.writeln('.card:hover { background: $cardHover; }');
-    buffer.writeln('.task-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }');
+    buffer.writeln('.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }');
+    buffer.writeln('.card-title { display: flex; align-items: center; gap: 8px; }');
+    buffer.writeln('.name { font-size: 13px; font-weight: 700; }');
     buffer.writeln('.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }');
-    buffer.writeln('.phases { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }');
-    buffer.writeln('.phase { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; }');
-    buffer.writeln('.note { font-size: 10px; color: $textTertiary; margin-top: 6px; }');
+    buffer.writeln('.date { font-size: 10px; color: $textTertiary; }');
+    buffer.writeln('.progress { display: flex; gap: 2px; margin-bottom: 10px; }');
+    buffer.writeln('.progress-bar { height: 3px; flex: 1; border-radius: 2px; }');
+    buffer.writeln('.summary-title { font-size: 12px; font-weight: 600; color: $textSecondary; margin-bottom: 8px; }');
+    buffer.writeln('.changes { list-style: none; margin-bottom: 8px; }');
+    buffer.writeln('.changes li { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; font-size: 11px; line-height: 1.5; }');
+    buffer.writeln('.changes li .plus { color: $changePlus; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-top: 1px; }');
+    buffer.writeln('.decision { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; font-size: 10px; margin-bottom: 6px; background: $decisionBg; }');
+    buffer.writeln('.decision-type { font-weight: 700; color: $decisionColor; }');
+    buffer.writeln('.decision-note { color: $textTertiary; }');
+    buffer.writeln('.stats { display: flex; gap: 12px; font-size: 10px; color: $textTertiary; }');
     buffer.writeln('.nav-hint { font-size: 9px; color: $textTertiary; margin-top: 8px; opacity: 0; transition: opacity 0.15s; }');
     buffer.writeln('.card:hover .nav-hint { opacity: 1; }');
     buffer.writeln('</style></head><body>');
@@ -349,39 +363,74 @@ class ProjectService {
     for (final entry in sorted) {
       final lastStatus = entry.lastStatus;
       final dotColor = _statusDotColor(lastStatus);
-      // id가 있으면 id 사용, 없으면 slug 사용 (태스크 폴더명 매칭용)
       final taskId = entry.id ?? entry.slug;
+
+      // 완료된 phase 집합
+      final completedPhases = <String>{};
+      for (final log in entry.logs) {
+        if (log.status == '완료' || log.status == '승인' || log.status == '조건부승인') {
+          completedPhases.add(log.phase);
+        }
+      }
 
       buffer.writeln('<div class="item">');
       buffer.writeln('<div class="dot" style="background:$dotColor"></div>');
 
-      // 날짜
-      final lastDate = entry.logs.isNotEmpty ? entry.logs.last.date : '';
-      buffer.writeln('<div class="date">$lastDate</div>');
-
       buffer.writeln('<div class="card" onclick="window.chrome.webview.postMessage(\'navigate:${_escapeHtml(taskId)}\')">');
 
-      // 이름 + 상태 배지
+      // Header: 이름 + 배지 + 날짜
+      final lastDate = entry.logs.isNotEmpty ? entry.logs.last.date : '';
       final statusBg = _statusBadgeBg(lastStatus, isDark);
       final statusColor = _statusBadgeColor(lastStatus, isDark);
-      buffer.writeln('<div class="task-name">');
-      buffer.writeln('<span>${_escapeHtml(entry.name.isNotEmpty ? entry.name : entry.slug)}</span>');
+      buffer.writeln('<div class="card-header">');
+      buffer.writeln('<div class="card-title">');
+      buffer.writeln('<span class="name">${_escapeHtml(entry.name.isNotEmpty ? entry.name : entry.slug)}</span>');
       buffer.writeln('<span class="badge" style="background:$statusBg;color:$statusColor">$lastStatus</span>');
       buffer.writeln('</div>');
+      buffer.writeln('<span class="date">$lastDate</span>');
+      buffer.writeln('</div>');
 
-      // Phase 칩
-      buffer.writeln('<div class="phases">');
-      for (final log in entry.logs) {
-        final phaseBg = _phaseBg(log.phase, isDark);
-        final phaseColor = _phaseColor(log.phase, isDark);
-        buffer.writeln('<span class="phase" style="background:$phaseBg;color:$phaseColor">${log.phase} ${log.status}</span>');
+      // Compact progress bar (4칸)
+      buffer.writeln('<div class="progress">');
+      for (final phase in ['기획', '디자인', '승인', '개발']) {
+        final color = completedPhases.contains(phase) ? barDone : barPending;
+        buffer.writeln('<div class="progress-bar" style="background:$color"></div>');
       }
       buffer.writeln('</div>');
 
-      // 마지막 note
-      final lastNote = entry.logs.isNotEmpty ? entry.logs.last.note : '';
-      if (lastNote.isNotEmpty) {
-        buffer.writeln('<div class="note">${_escapeHtml(lastNote)}</div>');
+      // Summary title
+      buffer.writeln('<div class="summary-title">${_escapeHtml(entry.summaryTitle)}</div>');
+
+      // Changes bullet list (PR style)
+      final changes = entry.fallbackChanges;
+      if (changes.isNotEmpty) {
+        buffer.writeln('<ul class="changes">');
+        for (final change in changes.take(5)) {
+          buffer.writeln('<li><span class="plus">+</span><span>${_escapeHtml(change)}</span></li>');
+        }
+        buffer.writeln('</ul>');
+      }
+
+      // Decision badges
+      if (entry.summary?.decisions != null) {
+        for (final decision in entry.summary!.decisions) {
+          buffer.writeln('<div class="decision">');
+          buffer.writeln('<span class="decision-type">${_escapeHtml(decision.type)}</span>');
+          if (decision.note.isNotEmpty) {
+            buffer.writeln('<span class="decision-note">${_escapeHtml(decision.note)}</span>');
+          }
+          buffer.writeln('</div>');
+        }
+      }
+
+      // Stats
+      final filesChanged = entry.summary?.filesChanged ?? 0;
+      final issues = entry.summary?.issues ?? 0;
+      if (filesChanged > 0 || issues > 0) {
+        buffer.writeln('<div class="stats">');
+        if (filesChanged > 0) buffer.writeln('<span>📁 $filesChanged files</span>');
+        buffer.writeln('<span>⚠️ $issues issues</span>');
+        buffer.writeln('</div>');
       }
 
       buffer.writeln('<div class="nav-hint">클릭하여 태스크로 이동 →</div>');
@@ -464,41 +513,4 @@ class ProjectService {
     }
   }
 
-  String _phaseBg(String phase, bool isDark) {
-    if (isDark) {
-      switch (phase) {
-        case '기획': return 'rgba(96,165,250,0.15)';
-        case '디자인': return 'rgba(167,139,250,0.15)';
-        case '승인': return 'rgba(251,191,36,0.15)';
-        case '개발': return 'rgba(52,211,153,0.15)';
-        default: return 'rgba(148,163,184,0.15)';
-      }
-    }
-    switch (phase) {
-      case '기획': return '#EFF6FF';
-      case '디자인': return '#F5F3FF';
-      case '승인': return '#FFFBEB';
-      case '개발': return '#ECFDF5';
-      default: return '#F1F5F9';
-    }
-  }
-
-  String _phaseColor(String phase, bool isDark) {
-    if (isDark) {
-      switch (phase) {
-        case '기획': return '#60A5FA';
-        case '디자인': return '#A78BFA';
-        case '승인': return '#FBBF24';
-        case '개발': return '#34D399';
-        default: return '#94A3B8';
-      }
-    }
-    switch (phase) {
-      case '기획': return '#1D4ED8';
-      case '디자인': return '#6D28D9';
-      case '승인': return '#B45309';
-      case '개발': return '#047857';
-      default: return '#334155';
-    }
-  }
 }

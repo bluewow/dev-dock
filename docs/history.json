@@ -2,6 +2,15 @@
   {
     "slug": "taskflow",
     "name": "TaskFlow - 진행도/TODO 관리 대시보드",
+    "summary": {
+      "title": "진행도/TODO 관리 대시보드 구현",
+      "changes": [
+        "Next.js 16 + Tailwind v4 + Pretendard 기반 대시보드",
+        "1차/2차 범위 분리하여 핵심 기능 우선 구현",
+        "디자인 검토 개선사항 6건 모두 반영"
+      ],
+      "stats": { "files_changed": 8, "issues": 0 }
+    },
     "logs": [
       { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의적 개선안) 참여. 1차/2차 범위 분리 완료." },
       { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "외부 디자인 시안(docs/data) 검토. 디자이너A(트렌드), 디자이너B(실용성) 검토 완료. 개선사항 6건 도출." },
@@ -16,6 +25,16 @@
     "slug": "project-hub",
     "name": "Project Hub - 로컬 프로젝트 관리 허브",
     "path": "docs/tasks/001-project-hub",
+    "summary": {
+      "title": "로컬 프로젝트 관리 허브 전체 구현",
+      "changes": [
+        "Flutter Windows 데스크톱 앱 기반 프로젝트 허브",
+        "API 7개 + 대시보드 + 상세페이지 + 산출물 뷰어",
+        "의사결정 기록 (승인/반려) 기능 구현",
+        "docs/tasks/ 자동 스캔 및 WebView 뷰어 연동"
+      ],
+      "stats": { "files_changed": 15, "issues": 0 }
+    },
     "logs": [
       { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의) 참여. 화면 플로우, 데이터 모델, API 설계, 우선순위 분류 완료." },
       { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "디자이너A(트렌드/모던), 디자이너B(안정/실용) 통합안. 사이드바 네비, 카드 UI, 산출물 뷰어 레이아웃 확정." },
@@ -31,6 +50,19 @@
     "slug": "ui-improvement",
     "name": "UI 개선 - 테마 일관성/다크모드/탭 구조/이력 뷰어",
     "path": "docs/tasks/002-ui-improvement",
+    "summary": {
+      "title": "시맨틱 토큰 도입 및 다크모드 지원",
+      "changes": [
+        "AppSemanticColors 클래스로 하드코딩 색상 전면 교체",
+        "다크 테마 (Slate #0F172A 기반) 추가 + 토글 버튼",
+        "산출물/이력 탭 제거 → 태스크 카드 강화",
+        "이력 HTML 타임라인 뷰어 구현"
+      ],
+      "decisions": [
+        { "type": "조건부승인", "note": "태스크 상태 필터(전체/완료/진행중) 추가 조건" }
+      ],
+      "stats": { "files_changed": 13, "issues": 0 }
+    },
     "logs": [
       { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의) 참여. 시맨틱 토큰, 다크모드, 탭 제거, 이력 HTML 뷰어 기획 완료." },
       { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "디자이너A(트렌드), 디자이너B(안정) 통합안. Before/After, 라이트/다크 전체 목업 완료." },
