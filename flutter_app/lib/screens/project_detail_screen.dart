@@ -24,13 +24,13 @@ class ProjectDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
-  String _activeTab = 'tasks';
   String? _selectedTaskSlug;
   ScannedFile? _selectedFile;
   final _webviewController = WebviewController();
   bool _webviewReady = false;
   final _commentController = TextEditingController();
   bool _submittingDecision = false;
+  bool _showingHistory = false;
 
   @override
   void initState() {
@@ -58,12 +58,35 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     setState(() {
       _selectedFile = file;
       _selectedTaskSlug = taskSlug;
+      _showingHistory = false;
     });
 
     if (_webviewReady && file.absolutePath.isNotEmpty) {
       final uri = Uri.file(file.absolutePath);
       await _webviewController.loadUrl(uri.toString());
     }
+  }
+
+  Future<void> _showHistory(Project project, List<TaskEntry>? history) async {
+    if (!_webviewReady) return;
+
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+    final service = ref.read(projectServiceProvider);
+    final html = service.generateHistoryHtml(history ?? [], isDark: isDark);
+
+    // 임시 파일 생성하여 WebView에 로드
+    final tempDir = Directory.systemTemp;
+    final tempFile = File('${tempDir.path}/devdock_history_${project.id.hashCode}.html');
+    await tempFile.writeAsString(html);
+
+    setState(() {
+      _showingHistory = true;
+      _selectedFile = null;
+      _selectedTaskSlug = null;
+    });
+
+    final uri = Uri.file(tempFile.path);
+    await _webviewController.loadUrl(uri.toString());
   }
 
   Future<void> _submitDecision(String decision, Project project, List<TaskEntry>? history) async {
@@ -119,11 +142,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       error: (e, _) => Center(child: Text('오류: $e')),
       data: (project) {
         if (project == null) {
+          final sc = semanticColors(context);
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('프로젝트를 찾을 수 없습니다.', style: TextStyle(color: AppColors.slate400)),
+                Text('프로젝트를 찾을 수 없습니다.', style: TextStyle(color: sc.textTertiary)),
                 const SizedBox(height: 16),
                 HyperlinkButton(onPressed: widget.onBack, child: const Text('대시보드로 돌아가기')),
               ],
@@ -141,14 +165,27 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   }
 
   Widget _buildContent(Project project, List<ScannedTask> tasks, List<TaskEntry>? history) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+    final filter = ref.watch(taskFilterProvider);
+
+    // 필터 적용
+    final filteredTasks = tasks.where((task) {
+      if (filter == '전체') return true;
+      final status = _getTaskStatus(task.slug, history);
+      if (filter == '완료') return status == '완료' || status == '승인';
+      if (filter == '진행중') return status != '완료' && status != '승인';
+      return true;
+    }).toList();
+
     return Row(
       children: [
         // Left Panel: Task list
         Container(
           width: 280,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(right: BorderSide(color: AppColors.slate200)),
+          decoration: BoxDecoration(
+            color: sc.cardBg,
+            border: Border(right: BorderSide(color: sc.border)),
           ),
           child: Column(
             children: [
@@ -160,11 +197,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   children: [
                     GestureDetector(
                       onTap: widget.onBack,
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(FluentIcons.chevron_left, size: 12, color: AppColors.slate400),
-                          SizedBox(width: 4),
-                          Text('프로젝트 목록', style: TextStyle(fontSize: 11, color: AppColors.slate400)),
+                          Icon(FluentIcons.chevron_left, size: 12, color: sc.textTertiary),
+                          const SizedBox(width: 4),
+                          Text('프로젝트 목록', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
                         ],
                       ),
                     ),
@@ -183,7 +220,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         Expanded(
                           child: Text(
                             project.name,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: sc.textPrimary),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -192,36 +229,98 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     const SizedBox(height: 4),
                     Text(
                       project.path,
-                      style: const TextStyle(fontSize: 10, color: AppColors.slate400, fontFamily: 'Consolas'),
+                      style: TextStyle(fontSize: 10, color: sc.textTertiary, fontFamily: 'Consolas'),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
 
-              // Tab bar
+              // Task header with filter + history button
               Container(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppColors.slate100)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: sc.borderSubtle)),
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    _TabButton(label: '태스크', isActive: _activeTab == 'tasks', onTap: () => setState(() => _activeTab = 'tasks')),
-                    _TabButton(label: '산출물', isActive: _activeTab == 'artifacts', onTap: () => setState(() => _activeTab = 'artifacts')),
-                    _TabButton(label: '이력', isActive: _activeTab == 'history', onTap: () => setState(() => _activeTab = 'history')),
+                    // 태스크 수 + 이력 버튼
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '태스크 (${filteredTasks.length})',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: sc.textTertiary),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showHistory(project, history),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.primary500.withValues(alpha: 0.15) : AppColors.primary50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(FluentIcons.history, size: 10, color: isDark ? AppColors.primary400 : AppColors.primary600),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '이력',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? AppColors.primary400 : AppColors.primary600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // 상태 필터
+                    Row(
+                      children: ['전체', '완료', '진행중'].map((label) {
+                        final isActive = filter == label;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: GestureDetector(
+                            onTap: () => ref.read(taskFilterProvider.notifier).state = label,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? (isDark ? AppColors.primary500.withValues(alpha: 0.2) : AppColors.primary600)
+                                    : (isDark ? sc.hoverBg : sc.borderSubtle),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                                  color: isActive
+                                      ? (isDark ? AppColors.primary400 : const Color(0xFFFFFFFF))
+                                      : sc.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ],
                 ),
               ),
 
-              // Tab content
+              // Task list content
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(12),
-                  child: _activeTab == 'tasks'
-                      ? _buildTasksList(tasks, history)
-                      : _activeTab == 'artifacts'
-                          ? _buildArtifactsList(tasks)
-                          : _buildHistoryList(history),
+                  child: _buildTasksList(filteredTasks, history),
                 ),
               ),
             ],
@@ -235,33 +334,33 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   }
 
   Widget _buildTasksList(List<ScannedTask> tasks, List<TaskEntry>? history) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
     if (tasks.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 40),
-        child: Center(child: Text('산출물이 없습니다', style: TextStyle(fontSize: 12, color: AppColors.slate400))),
+      return Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Center(child: Text('해당 태스크가 없습니다', style: TextStyle(fontSize: 12, color: sc.textTertiary))),
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Text(
-            '태스크 목록 (${tasks.length})',
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.slate400),
-          ),
-        ),
-        const SizedBox(height: 4),
         ...tasks.map((task) {
           final isSelected = _selectedTaskSlug == task.slug;
           final lastStatus = _getTaskStatus(task.slug, history);
+          final taskName = _getTaskName(task.slug, history);
+          final phases = _getTaskPhases(task.slug, history);
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: GestureDetector(
               onTap: () {
-                setState(() => _selectedTaskSlug = task.slug);
+                setState(() {
+                  _selectedTaskSlug = task.slug;
+                  _showingHistory = false;
+                });
                 final htmlFile = task.files.where((f) => f.type == 'html').firstOrNull;
                 if (htmlFile != null) _openFile(htmlFile, task.slug);
               },
@@ -269,34 +368,60 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary50.withValues(alpha: 0.5) : Colors.white,
+                  color: isSelected
+                      ? (isDark ? AppColors.primary500.withValues(alpha: 0.1) : AppColors.primary50.withValues(alpha: 0.5))
+                      : sc.cardBg,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary200 : AppColors.slate200,
+                    color: isSelected
+                        ? (isDark ? AppColors.primary500 : AppColors.primary200)
+                        : sc.border,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Status + Spec + Progress
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        StatusBadge(status: lastStatus),
-                        if (task.hasSpec)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: AppColors.emerald50,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('spec', style: TextStyle(fontSize: 9, color: AppColors.emerald700, fontWeight: FontWeight.w600)),
-                          ),
+                        Row(
+                          children: [
+                            StatusBadge(status: lastStatus),
+                            if (task.hasSpec) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppColors.emerald400.withValues(alpha: 0.15) : AppColors.emerald50,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text('spec', style: TextStyle(
+                                  fontSize: 9,
+                                  color: isDark ? AppColors.emerald400 : AppColors.emerald700,
+                                  fontWeight: FontWeight.w600,
+                                )),
+                              ),
+                            ],
+                          ],
+                        ),
+                        // Progress indicator (4 pills)
+                        Row(
+                          children: _buildProgressPills(phases, isDark),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(task.slug, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    // Task slug
+                    Text(task.slug, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: sc.textPrimary)),
+                    // Task name (description)
+                    if (taskName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(taskName, style: TextStyle(fontSize: 10, color: sc.textTertiary)),
+                    ],
                     const SizedBox(height: 8),
+                    // File chips with icons
                     Wrap(
                       spacing: 4,
                       runSpacing: 4,
@@ -305,30 +430,47 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         return GestureDetector(
                           onTap: () => _openFile(f, task.slug),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: isFileSelected
-                                  ? AppColors.primary600
+                                  ? (isDark ? AppColors.primary500 : AppColors.primary600)
                                   : f.type == 'html'
-                                      ? AppColors.primary50
+                                      ? (isDark ? AppColors.primary500.withValues(alpha: 0.15) : AppColors.primary50)
                                       : f.type == 'md'
-                                          ? AppColors.emerald50
-                                          : AppColors.slate100,
-                              borderRadius: BorderRadius.circular(4),
+                                          ? (isDark ? AppColors.emerald400.withValues(alpha: 0.15) : AppColors.emerald50)
+                                          : sc.hoverBg,
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text(
-                              f.name,
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w500,
-                                color: isFileSelected
-                                    ? Colors.white
-                                    : f.type == 'html'
-                                        ? AppColors.primary700
-                                        : f.type == 'md'
-                                            ? AppColors.emerald700
-                                            : AppColors.slate500,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  FluentIcons.document,
+                                  size: 9,
+                                  color: isFileSelected
+                                      ? const Color(0xFFFFFFFF)
+                                      : f.type == 'html'
+                                          ? (isDark ? AppColors.primary400 : AppColors.primary700)
+                                          : f.type == 'md'
+                                              ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
+                                              : sc.textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  f.name,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: isFileSelected
+                                        ? const Color(0xFFFFFFFF)
+                                        : f.type == 'html'
+                                            ? (isDark ? AppColors.primary400 : AppColors.primary700)
+                                            : f.type == 'md'
+                                                ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
+                                                : sc.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -344,160 +486,43 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     );
   }
 
-  Widget _buildArtifactsList(List<ScannedTask> tasks) {
-    final allFiles = tasks.expand((t) => t.files.map((f) => (task: t, file: f))).toList();
-
-    if (allFiles.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 40),
-        child: Center(child: Text('산출물이 없습니다', style: TextStyle(fontSize: 12, color: AppColors.slate400))),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Text('전체 산출물', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.slate400)),
+  /// 진행 단계 pill 빌드 (기획/디자인/승인/개발)
+  List<Widget> _buildProgressPills(Set<String> completedPhases, bool isDark) {
+    const phases = ['기획', '디자인', '승인', '개발'];
+    return phases.map((phase) {
+      final isComplete = completedPhases.contains(phase);
+      return Padding(
+        padding: const EdgeInsets.only(left: 2),
+        child: Container(
+          width: 10,
+          height: 4,
+          decoration: BoxDecoration(
+            color: isComplete
+                ? AppColors.emerald400
+                : (isDark ? AppColors.slate700 : AppColors.slate200),
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
-        const SizedBox(height: 4),
-        ...allFiles.map((item) {
-          final isSelected = _selectedFile?.relativePath == item.file.relativePath;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: GestureDetector(
-              onTap: () => _openFile(item.file, item.task.slug),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary50.withValues(alpha: 0.5) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isSelected ? AppColors.primary200 : AppColors.slate200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(FluentIcons.document, size: 12, color: AppColors.slate400),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(item.file.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${item.task.slug}  |  ${(item.file.size / 1024).toStringAsFixed(1)}KB',
-                      style: const TextStyle(fontSize: 9, color: AppColors.slate400),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildHistoryList(List<TaskEntry>? history) {
-    if (history == null || history.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 40),
-        child: Center(child: Text('이력이 없습니다', style: TextStyle(fontSize: 12, color: AppColors.slate400))),
       );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Text('이력', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.slate400)),
-        ),
-        const SizedBox(height: 4),
-        ...history.map((entry) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.slate200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.name.isNotEmpty ? entry.name : entry.slug,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                  const SizedBox(height: 8),
-                  ...entry.logs.map((log) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            margin: const EdgeInsets.only(top: 5),
-                            decoration: const BoxDecoration(
-                              color: AppColors.slate300,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(log.date, style: const TextStyle(fontSize: 10, color: AppColors.slate400)),
-                                    const SizedBox(width: 6),
-                                    Text(log.phase, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                    const SizedBox(width: 6),
-                                    StatusBadge(status: log.status),
-                                  ],
-                                ),
-                                if (log.note.isNotEmpty) ...[
-                                  const SizedBox(height: 2),
-                                  Text(log.note, style: const TextStyle(fontSize: 10, color: AppColors.slate400)),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          );
-        }),
-      ],
-    );
+    }).toList();
   }
 
   Widget _buildViewer(Project project, List<TaskEntry>? history) {
-    if (_selectedFile == null) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
+    if (_selectedFile == null && !_showingHistory) {
       return Container(
-        color: AppColors.slate50,
-        child: const Center(
+        color: sc.scaffoldBg,
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(FluentIcons.document, size: 48, color: AppColors.slate200),
-              SizedBox(height: 16),
-              Text('산출물을 선택하세요', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.slate400)),
-              SizedBox(height: 4),
-              Text('왼쪽 목록에서 파일을 클릭하면 이 영역에 표시됩니다', style: TextStyle(fontSize: 11, color: AppColors.slate400)),
+              Icon(FluentIcons.document, size: 48, color: sc.border),
+              const SizedBox(height: 16),
+              Text('산출물을 선택하세요', style: TextStyle(fontWeight: FontWeight.w600, color: sc.textTertiary)),
+              const SizedBox(height: 4),
+              Text('왼쪽 목록에서 파일을 클릭하면 이 영역에 표시됩니다', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
             ],
           ),
         ),
@@ -509,39 +534,48 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         // Viewer header
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(bottom: BorderSide(color: AppColors.slate200)),
+          decoration: BoxDecoration(
+            color: sc.cardBg,
+            border: Border(bottom: BorderSide(color: sc.border)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.primary100,
+                  color: isDark ? AppColors.primary500.withValues(alpha: 0.2) : AppColors.primary100,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  _selectedFile!.name,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary700),
+                  _showingHistory ? '이력' : (_selectedFile?.name ?? ''),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.primary400 : AppColors.primary700,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
-              Text(_selectedTaskSlug ?? '', style: const TextStyle(fontSize: 11, color: AppColors.slate400)),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(FluentIcons.open_in_new_window, size: 14, color: AppColors.slate400),
-                onPressed: () {
-                  if (_selectedFile != null && File(_selectedFile!.absolutePath).existsSync()) {
-                    Process.run('cmd', ['/c', 'start', '', _selectedFile!.absolutePath]);
-                  }
-                },
+              Text(
+                _showingHistory ? '프로젝트 이력 타임라인' : (_selectedTaskSlug ?? ''),
+                style: TextStyle(fontSize: 11, color: sc.textTertiary),
               ),
+              const Spacer(),
+              if (!_showingHistory && _selectedFile != null)
+                IconButton(
+                  icon: Icon(FluentIcons.open_in_new_window, size: 14, color: sc.textTertiary),
+                  onPressed: () {
+                    if (_selectedFile != null && File(_selectedFile!.absolutePath).existsSync()) {
+                      Process.run('cmd', ['/c', 'start', '', _selectedFile!.absolutePath]);
+                    }
+                  },
+                ),
               IconButton(
-                icon: const Icon(FluentIcons.clear, size: 14, color: AppColors.slate400),
+                icon: Icon(FluentIcons.clear, size: 14, color: sc.textTertiary),
                 onPressed: () => setState(() {
                   _selectedFile = null;
                   _selectedTaskSlug = null;
+                  _showingHistory = false;
                 }),
               ),
             ],
@@ -555,13 +589,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               : const Center(child: ProgressRing()),
         ),
 
-        // Decision bar
-        if (_selectedTaskSlug != null)
+        // Decision bar (산출물 보기 시에만)
+        if (_selectedTaskSlug != null && !_showingHistory)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: AppColors.slate200)),
+            decoration: BoxDecoration(
+              color: sc.cardBg,
+              border: Border(top: BorderSide(color: sc.border)),
             ),
             child: Row(
               children: [
@@ -569,29 +603,37 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   child: TextBox(
                     controller: _commentController,
                     placeholder: '코멘트를 입력하세요...',
-                    style: const TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13, color: sc.textPrimary),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Button(
                   style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(AppColors.red50),
-                    foregroundColor: WidgetStatePropertyAll(AppColors.red600),
+                    backgroundColor: WidgetStatePropertyAll(
+                      isDark ? AppColors.rose400.withValues(alpha: 0.15) : AppColors.red50,
+                    ),
+                    foregroundColor: WidgetStatePropertyAll(
+                      isDark ? AppColors.rose400 : AppColors.red600,
+                    ),
                     padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                     shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   ),
                   onPressed: _submittingDecision ? null : () => _submitDecision('반려', project, history),
-                  child: const Text('반려', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  child: Text('반려', style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: isDark ? AppColors.rose400 : AppColors.red600,
+                  )),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   style: ButtonStyle(
-                    backgroundColor: const WidgetStatePropertyAll(AppColors.primary600),
+                    backgroundColor: WidgetStatePropertyAll(isDark ? AppColors.primary500 : AppColors.primary600),
                     padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                     shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   ),
                   onPressed: _submittingDecision ? null : () => _submitDecision('승인', project, history),
-                  child: const Text('승인', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  child: const Text('승인', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFFFFFFFF))),
                 ),
               ],
             ),
@@ -599,6 +641,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       ],
     );
   }
+
+  // _buildContent에서 사용하는 변수를 멤버로 캐시
+  late Project project;
+  late List<TaskEntry>? history;
 
   String _getTaskStatus(String slug, List<TaskEntry>? history) {
     if (history == null) return '미확인';
@@ -610,42 +656,29 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
     return '미확인';
   }
-}
 
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
+  String _getTaskName(String slug, List<TaskEntry>? history) {
+    if (history == null) return '';
+    for (final entry in history) {
+      final id = entry.id ?? entry.slug;
+      if (slug.contains(id) || slug.contains(entry.slug)) {
+        return entry.name;
+      }
+    }
+    return '';
+  }
 
-  const _TabButton({required this.label, required this.isActive, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isActive ? AppColors.primary600 : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                color: isActive ? AppColors.primary600 : AppColors.slate400,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  Set<String> _getTaskPhases(String slug, List<TaskEntry>? history) {
+    if (history == null) return {};
+    for (final entry in history) {
+      final id = entry.id ?? entry.slug;
+      if (slug.contains(id) || slug.contains(entry.slug)) {
+        return entry.logs
+            .where((log) => log.status == '완료' || log.status == '승인')
+            .map((log) => log.phase)
+            .toSet();
+      }
+    }
+    return {};
   }
 }

@@ -25,5 +25,19 @@
     ],
     "reviews": ["docs/tasks/001-project-hub/plan.html", "docs/tasks/001-project-hub/design.html"],
     "spec": "docs/tasks/001-project-hub/spec.md"
+  },
+  {
+    "id": "002-ui-improvement",
+    "slug": "ui-improvement",
+    "name": "UI 개선 - 테마 일관성/다크모드/탭 구조/이력 뷰어",
+    "path": "docs/tasks/002-ui-improvement",
+    "logs": [
+      { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A(디테일), 기획자B(창의) 참여. 시맨틱 토큰, 다크모드, 탭 제거, 이력 HTML 뷰어 기획 완료." },
+      { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "디자이너A(트렌드), 디자이너B(안정) 통합안. Before/After, 라이트/다크 전체 목업 완료." },
+      { "phase": "승인", "status": "조건부승인", "date": "2026-03-11", "note": "조건: 태스크 목록에 상태 필터(전체/완료/진행중) 추가. 나머지 기획/디자인은 승인." },
+      { "phase": "개발", "status": "완료", "date": "2026-03-11", "note": "프론트개발자 구현 완료. 시맨틱 토큰(AppSemanticColors) 도입, 다크모드 지원, 산출물/이력 탭 제거, 태스크 카드 강화(description/진행단계/파일아이콘), 이력 HTML 뷰어, 상태 필터(전체/완료/진행중), 전체 위젯 하드코딩 색상 교체. flutter analyze 0 issues. 빌드 성공." }
+    ],
+    "reviews": ["docs/tasks/002-ui-improvement/plan.html", "docs/tasks/002-ui-improvement/design.html"],
+    "spec": "docs/tasks/002-ui-improvement/spec.md"
   }
 ]

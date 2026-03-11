@@ -4,19 +4,24 @@ import 'theme/app_theme.dart';
 import 'widgets/sidebar.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/project_detail_screen.dart';
+import 'providers/project_providers.dart';
 
 void main() {
   runApp(const ProviderScope(child: DevdockApp()));
 }
 
-class DevdockApp extends StatelessWidget {
+class DevdockApp extends ConsumerWidget {
   const DevdockApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return FluentApp(
       title: 'Devdock',
       theme: buildAppTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: themeMode,
       debugShowCheckedModeBanner: false,
       home: const AppShell(),
     );
@@ -71,18 +76,21 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
-class _CollapsedSidebar extends StatelessWidget {
+class _CollapsedSidebar extends ConsumerWidget {
   final VoidCallback onHomeTap;
 
   const _CollapsedSidebar({required this.onHomeTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: 56,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(right: BorderSide(color: AppColors.slate200)),
+      decoration: BoxDecoration(
+        color: sc.sidebarBg,
+        border: Border(right: BorderSide(color: sc.border)),
       ),
       child: Column(
         children: [
@@ -95,10 +103,10 @@ class _CollapsedSidebar extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.primary600,
+                  color: isDark ? AppColors.primary500 : AppColors.primary600,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(FluentIcons.archive, size: 16, color: Colors.white),
+                child: const Icon(FluentIcons.archive, size: 16, color: Color(0xFFFFFFFF)),
               ),
             ),
           ),
@@ -110,10 +118,10 @@ class _CollapsedSidebar extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.slate100,
+                color: sc.hoverBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(FluentIcons.home, size: 14, color: AppColors.slate400),
+              child: Icon(FluentIcons.home, size: 14, color: sc.textTertiary),
             ),
           ),
           const SizedBox(height: 8),
@@ -122,11 +130,34 @@ class _CollapsedSidebar extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary50,
+              color: isDark ? AppColors.primary500.withValues(alpha: 0.15) : AppColors.primary50,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(FluentIcons.archive, size: 14, color: AppColors.primary600),
+            child: Icon(FluentIcons.archive, size: 14, color: isDark ? AppColors.primary400 : AppColors.primary600),
           ),
+          const Spacer(),
+          // Theme toggle
+          GestureDetector(
+            onTap: () {
+              final current = ref.read(themeModeProvider);
+              ref.read(themeModeProvider.notifier).state =
+                  current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: sc.hoverBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isDark ? FluentIcons.sunny : FluentIcons.clear_night,
+                size: 14,
+                color: isDark ? AppColors.amber400 : sc.textTertiary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

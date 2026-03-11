@@ -47,6 +47,8 @@ class _ProjectCardState extends State<ProjectCard> {
 
   @override
   Widget build(BuildContext context) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
     final dotColor = AppColors.dotColor(widget.project.color);
     final pct = _taskCount == 0 ? 0.0 : _completedCount / _taskCount;
 
@@ -59,14 +61,18 @@ class _ProjectCardState extends State<ProjectCard> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: sc.cardBg,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _hovering ? AppColors.primary200 : AppColors.slate200,
+              color: _hovering
+                  ? (isDark ? AppColors.primary500 : AppColors.primary200)
+                  : sc.border,
             ),
-            boxShadow: _hovering
-                ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))]
-                : [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1))],
+            boxShadow: isDark
+                ? null
+                : _hovering
+                    ? [BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))]
+                    : [BoxShadow(color: const Color(0xFF000000).withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +95,9 @@ class _ProjectCardState extends State<ProjectCard> {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
-                        color: _hovering ? AppColors.primary700 : AppColors.slate800,
+                        color: _hovering
+                            ? (isDark ? AppColors.primary400 : AppColors.primary700)
+                            : sc.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -111,9 +119,9 @@ class _ProjectCardState extends State<ProjectCard> {
               // Path
               Text(
                 widget.project.path,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.slate400,
+                  color: sc.textTertiary,
                   fontFamily: 'Consolas',
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -125,10 +133,10 @@ class _ProjectCardState extends State<ProjectCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('진행률', style: TextStyle(fontSize: 11, color: AppColors.slate400)),
+                    Text('진행률', style: TextStyle(fontSize: 11, color: sc.textTertiary)),
                     Text(
                       '$_completedCount/$_taskCount',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary600),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.primary400 : AppColors.primary600),
                     ),
                   ],
                 ),
@@ -137,7 +145,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   borderRadius: BorderRadius.circular(4),
                   child: ProgressBar(
                     value: pct * 100,
-                    backgroundColor: AppColors.slate100,
+                    backgroundColor: isDark ? AppColors.slate700 : AppColors.slate100,
                     activeColor: dotColor,
                   ),
                 ),
@@ -148,8 +156,8 @@ class _ProjectCardState extends State<ProjectCard> {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.only(top: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: AppColors.slate100)),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: sc.borderSubtle)),
                   ),
                   child: Row(
                     children: [
@@ -165,7 +173,7 @@ class _ProjectCardState extends State<ProjectCard> {
                       Expanded(
                         child: Text(
                           _latestActivity,
-                          style: const TextStyle(fontSize: 11, color: AppColors.slate600),
+                          style: TextStyle(fontSize: 11, color: sc.textSecondary),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -187,10 +195,12 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.statusBg(status),
+        color: AppColors.statusBg(status, isDark: isDark),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -198,7 +208,7 @@ class _StatusBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: AppColors.statusText(status),
+          color: AppColors.statusText(status, isDark: isDark),
         ),
       ),
     );

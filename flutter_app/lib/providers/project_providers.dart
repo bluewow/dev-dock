@@ -1,3 +1,4 @@
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import '../models/task_entry.dart';
@@ -67,6 +68,14 @@ final projectScanProvider = FutureProvider.family<
     return service.scanProject(project.path);
   },
 );
+
+// ─── Theme Mode ──────────────────────────────────────────────────────────────
+
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+
+// ─── Task Filter ─────────────────────────────────────────────────────────────
+
+final taskFilterProvider = StateProvider<String>((ref) => '전체');
 
 // ─── Sidebar State ────────────────────────────────────────────────────────────
 

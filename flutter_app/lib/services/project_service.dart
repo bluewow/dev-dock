@@ -292,4 +292,197 @@ class ProjectService {
       const JsonEncoder.withIndent('  ').convert(history),
     );
   }
+
+  // ─── History HTML Generation ────────────────────────────────────────
+
+  String generateHistoryHtml(List<TaskEntry> history, {bool isDark = false}) {
+    if (history.isEmpty) {
+      return _emptyHistoryHtml(isDark);
+    }
+
+    final bg = isDark ? '#0F172A' : '#F8FAFC';
+    final cardBg = isDark ? '#1E293B' : '#FFFFFF';
+    final textPrimary = isDark ? '#F1F5F9' : '#1E293B';
+    final textSecondary = isDark ? '#94A3B8' : '#64748B';
+    final textTertiary = isDark ? '#64748B' : '#94A3B8';
+    final border = isDark ? '#334155' : '#E2E8F0';
+    final timelineColor = isDark ? '#334155' : '#C7D2FE';
+
+    final buffer = StringBuffer();
+    buffer.writeln('<!DOCTYPE html>');
+    buffer.writeln('<html lang="ko"><head><meta charset="UTF-8">');
+    buffer.writeln('<style>');
+    buffer.writeln('* { font-family: "Pretendard", -apple-system, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }');
+    buffer.writeln('body { background: $bg; color: $textPrimary; padding: 24px; }');
+    buffer.writeln('.header { font-size: 16px; font-weight: 800; margin-bottom: 4px; }');
+    buffer.writeln('.subtitle { font-size: 12px; color: $textSecondary; margin-bottom: 24px; }');
+    buffer.writeln('.timeline { position: relative; padding-left: 24px; }');
+    buffer.writeln('.timeline::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: $timelineColor; }');
+    buffer.writeln('.item { position: relative; padding-bottom: 24px; }');
+    buffer.writeln('.item:last-child { padding-bottom: 0; }');
+    buffer.writeln('.dot { position: absolute; left: -24px; top: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid $bg; }');
+    buffer.writeln('.date { font-size: 11px; color: $textTertiary; margin-bottom: 6px; }');
+    buffer.writeln('.card { background: $cardBg; border: 1px solid $border; border-radius: 12px; padding: 12px; }');
+    buffer.writeln('.task-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }');
+    buffer.writeln('.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }');
+    buffer.writeln('.phases { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }');
+    buffer.writeln('.phase { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; }');
+    buffer.writeln('.note { font-size: 10px; color: $textTertiary; margin-top: 6px; }');
+    buffer.writeln('</style></head><body>');
+
+    buffer.writeln('<div class="header">프로젝트 이력</div>');
+    buffer.writeln('<div class="subtitle">총 ${history.length}개 태스크</div>');
+    buffer.writeln('<div class="timeline">');
+
+    for (final entry in history) {
+      final lastStatus = entry.lastStatus;
+      final dotColor = _statusDotColor(lastStatus);
+
+      buffer.writeln('<div class="item">');
+      buffer.writeln('<div class="dot" style="background:$dotColor"></div>');
+
+      // 날짜
+      final lastDate = entry.logs.isNotEmpty ? entry.logs.last.date : '';
+      buffer.writeln('<div class="date">$lastDate</div>');
+
+      buffer.writeln('<div class="card">');
+
+      // 이름 + 상태 배지
+      final statusBg = _statusBadgeBg(lastStatus, isDark);
+      final statusColor = _statusBadgeColor(lastStatus, isDark);
+      buffer.writeln('<div class="task-name">');
+      buffer.writeln('<span>${_escapeHtml(entry.name.isNotEmpty ? entry.name : entry.slug)}</span>');
+      buffer.writeln('<span class="badge" style="background:$statusBg;color:$statusColor">$lastStatus</span>');
+      buffer.writeln('</div>');
+
+      // Phase 칩
+      buffer.writeln('<div class="phases">');
+      for (final log in entry.logs) {
+        final phaseBg = _phaseBg(log.phase, isDark);
+        final phaseColor = _phaseColor(log.phase, isDark);
+        buffer.writeln('<span class="phase" style="background:$phaseBg;color:$phaseColor">${log.phase} ${log.status}</span>');
+      }
+      buffer.writeln('</div>');
+
+      // 마지막 note
+      final lastNote = entry.logs.isNotEmpty ? entry.logs.last.note : '';
+      if (lastNote.isNotEmpty) {
+        buffer.writeln('<div class="note">${_escapeHtml(lastNote)}</div>');
+      }
+
+      buffer.writeln('</div>'); // card
+      buffer.writeln('</div>'); // item
+    }
+
+    buffer.writeln('</div>'); // timeline
+    buffer.writeln('</body></html>');
+
+    return buffer.toString();
+  }
+
+  String _emptyHistoryHtml(bool isDark) {
+    final bg = isDark ? '#0F172A' : '#F8FAFC';
+    final color = isDark ? '#64748B' : '#94A3B8';
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'
+        'body{background:$bg;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Pretendard,sans-serif;}'
+        'p{color:$color;font-size:14px;}'
+        '</style></head><body><p>이력이 없습니다</p></body></html>';
+  }
+
+  String _escapeHtml(String s) => s
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+
+  String _statusDotColor(String status) {
+    switch (status) {
+      case '완료': case '승인': return '#34D399';
+      case '진행중': return '#A78BFA';
+      case '기획': return '#60A5FA';
+      case '반려': return '#FB7185';
+      case '대기': return '#FBBF24';
+      default: return '#94A3B8';
+    }
+  }
+
+  String _statusBadgeBg(String status, bool isDark) {
+    if (isDark) {
+      switch (status) {
+        case '완료': case '승인': return 'rgba(52,211,153,0.15)';
+        case '진행중': return 'rgba(167,139,250,0.15)';
+        case '기획': return 'rgba(96,165,250,0.15)';
+        case '반려': return 'rgba(251,113,133,0.15)';
+        case '대기': return 'rgba(251,191,36,0.15)';
+        default: return 'rgba(148,163,184,0.15)';
+      }
+    }
+    switch (status) {
+      case '완료': case '승인': return '#ECFDF5';
+      case '진행중': return '#F5F3FF';
+      case '기획': return '#EFF6FF';
+      case '반려': return '#FEF2F2';
+      case '대기': return '#FFFBEB';
+      default: return '#F1F5F9';
+    }
+  }
+
+  String _statusBadgeColor(String status, bool isDark) {
+    if (isDark) {
+      switch (status) {
+        case '완료': case '승인': return '#34D399';
+        case '진행중': return '#A78BFA';
+        case '기획': return '#60A5FA';
+        case '반려': return '#FB7185';
+        case '대기': return '#FBBF24';
+        default: return '#94A3B8';
+      }
+    }
+    switch (status) {
+      case '완료': case '승인': return '#047857';
+      case '진행중': return '#6D28D9';
+      case '기획': return '#1D4ED8';
+      case '반려': return '#DC2626';
+      case '대기': return '#B45309';
+      default: return '#334155';
+    }
+  }
+
+  String _phaseBg(String phase, bool isDark) {
+    if (isDark) {
+      switch (phase) {
+        case '기획': return 'rgba(96,165,250,0.15)';
+        case '디자인': return 'rgba(167,139,250,0.15)';
+        case '승인': return 'rgba(251,191,36,0.15)';
+        case '개발': return 'rgba(52,211,153,0.15)';
+        default: return 'rgba(148,163,184,0.15)';
+      }
+    }
+    switch (phase) {
+      case '기획': return '#EFF6FF';
+      case '디자인': return '#F5F3FF';
+      case '승인': return '#FFFBEB';
+      case '개발': return '#ECFDF5';
+      default: return '#F1F5F9';
+    }
+  }
+
+  String _phaseColor(String phase, bool isDark) {
+    if (isDark) {
+      switch (phase) {
+        case '기획': return '#60A5FA';
+        case '디자인': return '#A78BFA';
+        case '승인': return '#FBBF24';
+        case '개발': return '#34D399';
+        default: return '#94A3B8';
+      }
+    }
+    switch (phase) {
+      case '기획': return '#1D4ED8';
+      case '디자인': return '#6D28D9';
+      case '승인': return '#B45309';
+      case '개발': return '#047857';
+      default: return '#334155';
+    }
+  }
 }

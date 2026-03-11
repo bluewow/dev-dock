@@ -1,10 +1,70 @@
 import 'package:fluent_ui/fluent_ui.dart';
 
+// ─── Semantic Color Tokens ───────────────────────────────────────────────────
+
+class AppSemanticColors {
+  final Color scaffoldBg;
+  final Color cardBg;
+  final Color sidebarBg;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color border;
+  final Color borderSubtle;
+  final Color hoverBg;
+
+  const AppSemanticColors({
+    required this.scaffoldBg,
+    required this.cardBg,
+    required this.sidebarBg,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.border,
+    required this.borderSubtle,
+    required this.hoverBg,
+  });
+
+  static const light = AppSemanticColors(
+    scaffoldBg: Color(0xFFF8FAFC),
+    cardBg: Color(0xFFFFFFFF),
+    sidebarBg: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF1E293B),
+    textSecondary: Color(0xFF64748B),
+    textTertiary: Color(0xFF94A3B8),
+    border: Color(0xFFE2E8F0),
+    borderSubtle: Color(0xFFF1F5F9),
+    hoverBg: Color(0xFFF1F5F9),
+  );
+
+  static const dark = AppSemanticColors(
+    scaffoldBg: Color(0xFF0F172A),
+    cardBg: Color(0xFF1E293B),
+    sidebarBg: Color(0xFF0F172A),
+    textPrimary: Color(0xFFF1F5F9),
+    textSecondary: Color(0xFF94A3B8),
+    textTertiary: Color(0xFF64748B),
+    border: Color(0xFF334155),
+    borderSubtle: Color(0xFF1E293B),
+    hoverBg: Color(0xFF334155),
+  );
+}
+
+/// 현재 테마 밝기에 따라 시맨틱 컬러를 반환
+AppSemanticColors semanticColors(BuildContext context) {
+  return FluentTheme.of(context).brightness == Brightness.dark
+      ? AppSemanticColors.dark
+      : AppSemanticColors.light;
+}
+
+// ─── Static Color Palette ────────────────────────────────────────────────────
+
 class AppColors {
   // Primary (Indigo)
   static const primary50 = Color(0xFFEEF2FF);
   static const primary100 = Color(0xFFE0E7FF);
   static const primary200 = Color(0xFFC7D2FE);
+  static const primary400 = Color(0xFF818CF8);
   static const primary500 = Color(0xFF6366F1);
   static const primary600 = Color(0xFF4F46E5);
   static const primary700 = Color(0xFF4338CA);
@@ -23,6 +83,7 @@ class AppColors {
   static const slate600 = Color(0xFF475569);
   static const slate700 = Color(0xFF334155);
   static const slate800 = Color(0xFF1E293B);
+  static const slate900 = Color(0xFF0F172A);
 
   // Status Colors
   static const emerald50 = Color(0xFFECFDF5);
@@ -69,7 +130,25 @@ class AppColors {
     }
   }
 
-  static Color statusBg(String status) {
+  // Status badge 배경 (밝기 대응)
+  static Color statusBg(String status, {bool isDark = false}) {
+    if (isDark) {
+      switch (status) {
+        case '완료':
+        case '승인':
+          return emerald400.withValues(alpha: 0.15);
+        case '진행중':
+          return purple400.withValues(alpha: 0.15);
+        case '기획':
+          return blue400.withValues(alpha: 0.15);
+        case '반려':
+          return rose400.withValues(alpha: 0.15);
+        case '대기':
+          return amber400.withValues(alpha: 0.15);
+        default:
+          return slate700;
+      }
+    }
     switch (status) {
       case '완료':
       case '승인':
@@ -87,7 +166,25 @@ class AppColors {
     }
   }
 
-  static Color statusText(String status) {
+  // Status badge 텍스트 (밝기 대응)
+  static Color statusText(String status, {bool isDark = false}) {
+    if (isDark) {
+      switch (status) {
+        case '완료':
+        case '승인':
+          return emerald400;
+        case '진행중':
+          return purple400;
+        case '기획':
+          return blue400;
+        case '반려':
+          return rose400;
+        case '대기':
+          return amber400;
+        default:
+          return slate400;
+      }
+    }
     switch (status) {
       case '완료':
       case '승인':
@@ -106,6 +203,8 @@ class AppColors {
   }
 }
 
+// ─── Theme Builders ──────────────────────────────────────────────────────────
+
 FluentThemeData buildAppTheme() {
   return FluentThemeData(
     fontFamily: 'Pretendard',
@@ -118,5 +217,20 @@ FluentThemeData buildAppTheme() {
     }),
     scaffoldBackgroundColor: AppColors.background,
     brightness: Brightness.light,
+  );
+}
+
+FluentThemeData buildDarkTheme() {
+  return FluentThemeData(
+    fontFamily: 'Pretendard',
+    accentColor: AccentColor.swatch({
+      'normal': AppColors.primary500,
+      'lighter': AppColors.primary400,
+      'lightest': AppColors.primary200,
+      'dark': AppColors.primary600,
+      'darkest': AppColors.primary700,
+    }),
+    scaffoldBackgroundColor: AppColors.slate900,
+    brightness: Brightness.dark,
   );
 }

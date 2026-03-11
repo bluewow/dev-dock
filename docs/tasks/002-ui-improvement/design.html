@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디자인 시안 - Devdock UI 개선</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  * { font-family: 'Pretendard', sans-serif; }
+  .tab-btn { cursor: pointer; transition: all 0.2s; }
+  .tab-btn.active { border-bottom: 2px solid #4F46E5; color: #4F46E5; font-weight: 700; }
+  .tab-btn:not(.active) { color: #94A3B8; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .mockup-frame {
+    width: 100%;
+    max-width: 960px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .dark-mockup-frame {
+    border-color: #334155;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white border-b border-slate-200 px-8 py-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded">002</span>
+      <span class="text-sm text-slate-400">디자인 시안</span>
+      <span class="text-sm text-slate-400">2026-03-10</span>
+    </div>
+    <h1 class="text-2xl font-extrabold text-slate-800">Devdock UI 개선 - 디자인 시안</h1>
+    <p class="text-sm text-slate-500 mt-1">디자이너A(트렌드/모던) + 디자이너B(안정/실용) 통합안</p>
+  </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-8 flex gap-6">
+    <button class="tab-btn active py-3 text-sm" onclick="switchTab('summary')">요약</button>
+    <button class="tab-btn py-3 text-sm" onclick="switchTab('before-after')">Before / After</button>
+    <button class="tab-btn py-3 text-sm" onclick="switchTab('fullmock-light')">전체 목업 (라이트)</button>
+    <button class="tab-btn py-3 text-sm" onclick="switchTab('fullmock-dark')">전체 목업 (다크)</button>
+    <button class="tab-btn py-3 text-sm" onclick="switchTab('detail')">디자이너 상세</button>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-8 py-8">
+
+<!-- ============================================================ -->
+<!-- TAB 1: 요약 -->
+<!-- ============================================================ -->
+<div id="tab-summary" class="tab-content active">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Positive -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h3 class="font-bold text-emerald-600 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        개선 사항
+      </h3>
+      <ul class="text-sm text-slate-600 space-y-3">
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>시맨틱 컬러 토큰 도입</strong> - Colors.white/black 하드코딩 완전 제거, 테마 일관성 확보</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>다크 모드 지원</strong> - Slate 계열 기반 부드러운 다크 팔레트, 눈 편안한 대비율</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>탭 구조 간소화</strong> - 3탭 → 단일 태스크 리스트 + 이력 버튼으로 깔끔</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>태스크 카드 강화</strong> - 진행 단계 인디케이터, description, 파일 칩 아이콘</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>이력 HTML 타임라인</strong> - WebView에서 풍부한 시각화, 단계별 색상 구분</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+          <span><strong>영역별 차등 명도</strong> - 사이드바/컨텐츠/뷰어 간 미세한 명도 차이로 깊이감</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Verdict -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h3 class="font-bold text-indigo-600 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+        최종 판정
+      </h3>
+      <div class="space-y-4">
+        <div class="bg-indigo-50 rounded-lg p-4">
+          <p class="text-sm text-slate-700"><strong>디자이너A 의견:</strong> 다크 모드의 #0F172A(slate-900) 배경은 트렌디하면서도 Indigo 액센트와 잘 어울립니다. 사이드바를 배경보다 약간 더 어둡게 하여 깊이감을 주면 좋겠습니다.</p>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-4">
+          <p class="text-sm text-slate-700"><strong>디자이너B 의견:</strong> 시맨틱 토큰 접근이 안정적입니다. status 컬러는 라이트/다크 모두에서 동일하게 유지하되 배경 투명도만 조절하는 것이 일관성에 좋습니다.</p>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+          <p class="text-sm font-bold text-emerald-700">통합 결론: 두 디자이너 의견을 반영하여, Slate 계열 다크 팔레트 + 영역별 차등 명도 + status 컬러 동일 유지 방향으로 확정합니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2: Before / After -->
+<!-- ============================================================ -->
+<div id="tab-before-after" class="tab-content">
+  <div class="space-y-10">
+
+    <!-- Change 1: Theme Colors -->
+    <div>
+      <h3 class="font-bold text-sm text-slate-700 mb-4 flex items-center gap-2">
+        <span class="px-2 py-0.5 bg-red-50 text-red-700 text-xs font-bold rounded">P0</span>
+        변경점 1: 홈화면 색상 일관성 + 다크모드
+      </h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Before: Dashboard Light with black issues -->
+        <div>
+          <div class="text-xs font-bold text-red-500 mb-2">Before</div>
+          <div class="mockup-frame">
+            <div class="flex" style="height:400px">
+              <!-- Sidebar -->
+              <div class="w-48 bg-white border-r border-slate-200 p-4 shrink-0">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-7 h-7 bg-indigo-600 rounded-lg"></div>
+                  <span class="text-sm font-bold" style="color:#1E293B">Devdock</span>
+                </div>
+                <div class="h-px bg-slate-200 mb-4"></div>
+                <div class="bg-indigo-50 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                  <span class="text-xs font-semibold text-indigo-700">대시보드</span>
+                </div>
+                <!-- No theme toggle -->
+              </div>
+              <!-- Content -->
+              <div class="flex-1 p-6" style="background:#F8FAFC">
+                <div class="flex items-center justify-between mb-5">
+                  <div>
+                    <div class="text-lg font-extrabold" style="color:#1E293B">내 프로젝트</div>
+                    <div class="text-xs" style="color:#94A3B8">1개 프로젝트 관리 중</div>
+                  </div>
+                  <button class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ 새 프로젝트</button>
+                </div>
+                <!-- Card with black text issue -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                      <span class="text-sm font-bold" style="color:#000000; border-bottom: 2px solid red">Devdock</span>
+                      <span class="ml-auto px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold rounded">완료</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono mb-3">C:\project\devdock</div>
+                    <div class="flex justify-between mb-1">
+                      <span class="text-[10px] text-slate-400">진행률</span>
+                      <span class="text-[10px] font-bold text-indigo-600">1/1</span>
+                    </div>
+                    <div class="h-1 bg-slate-100 rounded-full"><div class="h-full bg-emerald-400 rounded-full w-full"></div></div>
+                  </div>
+                  <div class="rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center" style="min-height:140px">
+                    <div class="text-center">
+                      <div class="text-2xl text-slate-300 mb-1">+</div>
+                      <div class="text-xs text-slate-400">새 프로젝트 추가</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-red-500 mt-2">빨간 밑줄: color 미지정으로 기본 black 노출 / 다크 모드 없음 / 테마 토글 없음</p>
+        </div>
+
+        <!-- After: Dashboard Dark mode -->
+        <div>
+          <div class="text-xs font-bold text-emerald-500 mb-2">After (다크 모드)</div>
+          <div class="mockup-frame dark-mockup-frame">
+            <div class="flex" style="height:400px">
+              <!-- Sidebar Dark -->
+              <div class="w-48 border-r p-4 shrink-0" style="background:#0F172A;border-color:#334155">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-7 h-7 bg-indigo-500 rounded-lg"></div>
+                  <span class="text-sm font-bold" style="color:#F1F5F9">Devdock</span>
+                </div>
+                <div class="h-px mb-4" style="background:#334155"></div>
+                <div class="rounded-xl px-3 py-2 flex items-center gap-2" style="background:#1E293B">
+                  <svg class="w-3.5 h-3.5" style="color:#818CF8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                  <span class="text-xs font-semibold" style="color:#C7D2FE">대시보드</span>
+                </div>
+                <!-- Theme toggle -->
+                <div class="mt-auto pt-4" style="margin-top:auto">
+                  <div class="h-px mb-3" style="background:#334155"></div>
+                  <div class="rounded-xl px-3 py-2 flex items-center gap-2 cursor-pointer" style="background:#1E293B;border:1px solid #334155">
+                    <svg class="w-3.5 h-3.5" style="color:#FBBF24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+                    <span class="text-xs font-medium" style="color:#94A3B8">라이트 모드</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Content Dark -->
+              <div class="flex-1 p-6" style="background:#0F172A">
+                <div class="flex items-center justify-between mb-5">
+                  <div>
+                    <div class="text-lg font-extrabold" style="color:#F1F5F9">내 프로젝트</div>
+                    <div class="text-xs" style="color:#64748B">1개 프로젝트 관리 중</div>
+                  </div>
+                  <button class="bg-indigo-500 text-white text-xs font-bold px-3 py-2 rounded-xl">+ 새 프로젝트</button>
+                </div>
+                <!-- Card Dark -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="rounded-xl border p-4" style="background:#1E293B;border-color:#334155">
+                    <div class="flex items-center gap-2 mb-2">
+                      <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                      <span class="text-sm font-bold" style="color:#F1F5F9; border-bottom: 2px solid #34D399">Devdock</span>
+                      <span class="ml-auto px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-[9px] font-bold rounded">완료</span>
+                    </div>
+                    <div class="text-[10px] font-mono mb-3" style="color:#64748B">C:\project\devdock</div>
+                    <div class="flex justify-between mb-1">
+                      <span class="text-[10px]" style="color:#64748B">진행률</span>
+                      <span class="text-[10px] font-bold" style="color:#818CF8">1/1</span>
+                    </div>
+                    <div class="h-1 rounded-full" style="background:#334155"><div class="h-full bg-emerald-400 rounded-full w-full"></div></div>
+                  </div>
+                  <div class="rounded-xl border-2 border-dashed flex items-center justify-center" style="border-color:#334155;min-height:140px">
+                    <div class="text-center">
+                      <div class="text-2xl mb-1" style="color:#475569">+</div>
+                      <div class="text-xs" style="color:#64748B">새 프로젝트 추가</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-emerald-500 mt-2">초록 밑줄: 시맨틱 토큰 적용으로 일관된 색상 / 다크 모드 / 사이드바 하단에 테마 토글</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change 2: Tab Structure -->
+    <div>
+      <h3 class="font-bold text-sm text-slate-700 mb-4 flex items-center gap-2">
+        <span class="px-2 py-0.5 bg-red-50 text-red-700 text-xs font-bold rounded">P0</span>
+        변경점 2: 탭 구조 개선 (산출물/이력 탭 제거)
+      </h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Before -->
+        <div>
+          <div class="text-xs font-bold text-red-500 mb-2">Before</div>
+          <div class="mockup-frame">
+            <div style="height:380px;background:#F8FAFC" class="flex">
+              <!-- Left Panel -->
+              <div class="w-56 bg-white border-r border-slate-200 shrink-0">
+                <div class="p-3 border-b border-slate-200">
+                  <div class="text-[10px] text-slate-400 mb-1">< 프로젝트 목록</div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                    <span class="text-xs font-bold">Devdock</span>
+                  </div>
+                </div>
+                <!-- 3 Tabs -->
+                <div class="flex border-b border-slate-200" style="background: #FEF2F2">
+                  <div class="flex-1 py-2 text-center text-[9px] font-bold text-indigo-600 border-b-2 border-indigo-600">태스크</div>
+                  <div class="flex-1 py-2 text-center text-[9px] text-slate-400" style="background: #FEF2F2; border: 2px dashed red; border-bottom: none">산출물</div>
+                  <div class="flex-1 py-2 text-center text-[9px] text-slate-400" style="background: #FEF2F2; border: 2px dashed red; border-bottom: none">이력</div>
+                </div>
+                <!-- Task list -->
+                <div class="p-2 space-y-2">
+                  <div class="bg-white rounded-lg border border-slate-200 p-2">
+                    <span class="px-1 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+                    <div class="text-[10px] font-bold mt-1">001-project-hub</div>
+                    <div class="flex gap-1 mt-1.5">
+                      <span class="px-1 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] rounded">plan.html</span>
+                      <span class="px-1 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] rounded">design.html</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Right: Viewer -->
+              <div class="flex-1 flex items-center justify-center">
+                <div class="text-center">
+                  <div class="text-3xl text-slate-200 mb-2">&#128196;</div>
+                  <div class="text-xs text-slate-400">산출물을 선택하세요</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-red-500 mt-2">빨간 테두리: 중복되는 산출물/이력 탭</p>
+        </div>
+
+        <!-- After -->
+        <div>
+          <div class="text-xs font-bold text-emerald-500 mb-2">After</div>
+          <div class="mockup-frame">
+            <div style="height:380px;background:#F8FAFC" class="flex">
+              <!-- Left Panel - No tabs -->
+              <div class="w-56 bg-white border-r border-slate-200 shrink-0">
+                <div class="p-3 border-b border-slate-200">
+                  <div class="text-[10px] text-slate-400 mb-1">< 프로젝트 목록</div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                    <span class="text-xs font-bold" style="color:#1E293B">Devdock</span>
+                  </div>
+                </div>
+                <!-- Header: Tasks count + History button -->
+                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100" style="background: #F0FFF4; border: 2px solid #34D399;">
+                  <span class="text-[9px] font-bold text-slate-500">태스크 (1)</span>
+                  <button class="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-bold rounded-md flex items-center gap-1">
+                    <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    이력
+                  </button>
+                </div>
+                <!-- Enhanced Task Card -->
+                <div class="p-2 space-y-2">
+                  <div class="bg-white rounded-lg border border-slate-200 p-3" style="border: 2px solid #34D399;">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <div class="flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+                        <span class="px-1 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-bold rounded">spec</span>
+                      </div>
+                      <div class="flex gap-0.5">
+                        <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                        <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                        <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                        <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div class="text-[10px] font-bold mb-0.5" style="color:#1E293B">001-project-hub</div>
+                    <div class="text-[8px] text-slate-400 mb-2">Project Hub - 로컬 프로젝트 관리 허브</div>
+                    <div class="flex flex-wrap gap-1">
+                      <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] font-semibold rounded-md">
+                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                        plan.html
+                      </div>
+                      <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] font-semibold rounded-md">
+                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                        design.html
+                      </div>
+                      <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-semibold rounded-md">
+                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                        spec.md
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Right: Viewer -->
+              <div class="flex-1 flex items-center justify-center">
+                <div class="text-center">
+                  <div class="text-3xl text-slate-200 mb-2">&#128196;</div>
+                  <div class="text-xs font-semibold text-slate-400">산출물을 선택하세요</div>
+                  <div class="text-[10px] text-slate-300 mt-1">왼쪽 목록에서 파일을 클릭하면 이 영역에 표시됩니다</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-emerald-500 mt-2">초록 테두리: 탭 제거 → 헤더에 태스크 수 + 이력 버튼 / 카드에 description + 진행 단계 추가</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change 3: History Viewer -->
+    <div>
+      <h3 class="font-bold text-sm text-slate-700 mb-4 flex items-center gap-2">
+        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-bold rounded">P1</span>
+        변경점 3: 이력 HTML 뷰어
+      </h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Before -->
+        <div>
+          <div class="text-xs font-bold text-red-500 mb-2">Before (이력 탭 - 텍스트 리스트)</div>
+          <div class="mockup-frame" style="max-width:280px">
+            <div class="p-3 space-y-2" style="background:#FFFFFF;height:300px">
+              <div class="text-[9px] font-bold text-slate-400">이력</div>
+              <div class="bg-white rounded-lg border border-slate-200 p-2">
+                <div class="text-[10px] font-bold">project-hub</div>
+                <div class="space-y-1 mt-1.5">
+                  <div class="flex items-center gap-1 text-[8px] text-slate-500">
+                    <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                    <span>2026-03-10</span> <span class="font-semibold">기획</span> <span>완료</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-[8px] text-slate-500">
+                    <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                    <span>2026-03-10</span> <span class="font-semibold">디자인</span> <span>완료</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-[8px] text-slate-500">
+                    <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                    <span>2026-03-10</span> <span class="font-semibold">승인</span> <span>승인</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-[8px] text-slate-500">
+                    <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                    <span>2026-03-10</span> <span class="font-semibold">개발</span> <span>완료</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-red-500 mt-2">280px 폭 제한, 모든 dot 동일 색상, note 표시 공간 부족</p>
+        </div>
+
+        <!-- After -->
+        <div>
+          <div class="text-xs font-bold text-emerald-500 mb-2">After (WebView에서 이력 HTML 렌더링)</div>
+          <div class="mockup-frame" style="max-width:500px">
+            <div class="p-5 space-y-4" style="background:#F8FAFC;height:300px;overflow-y:auto">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-bold text-slate-800">프로젝트 이력</div>
+                <span class="text-[9px] text-slate-400">총 2개 태스크</span>
+              </div>
+
+              <!-- Timeline -->
+              <div class="relative pl-6 pb-4 border-l-2 border-indigo-200">
+                <div class="absolute left-[-7px] top-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-sm"></div>
+                <div class="text-[10px] text-slate-400 mb-1.5">2026-03-10</div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-bold text-slate-800">Project Hub</span>
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+                  </div>
+                  <div class="flex gap-1">
+                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[8px] rounded">기획 완료</span>
+                    <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] rounded">디자인 완료</span>
+                    <span class="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[8px] rounded">승인</span>
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] rounded">개발 완료</span>
+                  </div>
+                  <div class="text-[9px] text-slate-400 mt-2">기획자A, 기획자B 참여. 디자이너A 주도.</div>
+                </div>
+              </div>
+
+              <div class="relative pl-6 pb-2 border-l-2 border-indigo-200">
+                <div class="absolute left-[-7px] top-0 w-3 h-3 bg-purple-400 rounded-full border-2 border-white shadow-sm"></div>
+                <div class="text-[10px] text-slate-400 mb-1.5">2026-03-10</div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-bold text-slate-800">UI 개선</span>
+                    <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-bold rounded">진행중</span>
+                  </div>
+                  <div class="flex gap-1">
+                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[8px] rounded">기획 진행중</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-emerald-500 mt-2">넓은 뷰어에서 타임라인 시각화, 단계별 색상 배지, note 표시</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3: 전체 목업 (라이트) -->
+<!-- ============================================================ -->
+<div id="tab-fullmock-light" class="tab-content">
+  <h3 class="font-bold text-sm text-slate-700 mb-4">전체 개선안 - 라이트 모드 (프로젝트 상세화면)</h3>
+  <div class="mockup-frame mx-auto">
+    <div class="flex" style="height:560px">
+      <!-- Collapsed Sidebar -->
+      <div class="w-14 bg-white border-r border-slate-200 shrink-0 flex flex-col items-center py-4">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg mb-3"></div>
+        <div class="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center mb-2">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </div>
+        <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+        </div>
+        <div class="flex-1"></div>
+        <!-- Theme Toggle -->
+        <div class="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center mb-2 cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </div>
+        <div class="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        </div>
+      </div>
+
+      <!-- Task Panel -->
+      <div class="w-64 bg-white border-r border-slate-200 shrink-0 flex flex-col">
+        <!-- Project Header -->
+        <div class="p-4 border-b border-slate-200">
+          <div class="text-[10px] text-slate-400 mb-1 flex items-center gap-1 cursor-pointer hover:text-indigo-500">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            프로젝트 목록
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+            <span class="text-sm font-bold text-slate-800">Devdock</span>
+          </div>
+          <div class="text-[9px] text-slate-400 font-mono mt-1">C:\project\devdock</div>
+        </div>
+
+        <!-- Task List Header -->
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+          <span class="text-[10px] font-bold text-slate-500">태스크 (2)</span>
+          <button class="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[9px] font-bold rounded-lg flex items-center gap-1 hover:bg-indigo-100 transition">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            이력
+          </button>
+        </div>
+
+        <!-- Task Cards -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-2">
+          <!-- Task 1 - selected -->
+          <div class="bg-indigo-50/50 rounded-xl border-2 border-indigo-200 p-3 cursor-pointer">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+                <span class="px-1 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-bold rounded">spec</span>
+              </div>
+              <div class="flex gap-0.5">
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+              </div>
+            </div>
+            <div class="text-[11px] font-bold text-slate-800 mb-0.5">001-project-hub</div>
+            <div class="text-[8px] text-slate-400 mb-2">Project Hub - 로컬 프로젝트 관리 허브</div>
+            <div class="flex flex-wrap gap-1">
+              <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-600 text-white text-[7px] font-semibold rounded-md">plan.html</div>
+              <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] font-semibold rounded-md">design.html</div>
+              <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-semibold rounded-md">spec.md</div>
+            </div>
+          </div>
+
+          <!-- Task 2 -->
+          <div class="bg-white rounded-xl border border-slate-200 p-3 cursor-pointer hover:border-indigo-200 transition">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-bold rounded">진행중</span>
+              </div>
+              <div class="flex gap-0.5">
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-slate-200 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-slate-200 rounded-full"></div>
+              </div>
+            </div>
+            <div class="text-[11px] font-bold text-slate-800 mb-0.5">002-ui-improvement</div>
+            <div class="text-[8px] text-slate-400 mb-2">UI 개선 - 테마/탭/이력 뷰어</div>
+            <div class="flex flex-wrap gap-1">
+              <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] font-semibold rounded-md">plan.html</div>
+              <div class="flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[7px] font-semibold rounded-md">design.html</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewer Area -->
+      <div class="flex-1 flex flex-col" style="background:#F8FAFC">
+        <!-- Viewer Header -->
+        <div class="bg-white border-b border-slate-200 px-5 py-3 flex items-center">
+          <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-semibold rounded-md">plan.html</span>
+          <span class="text-[10px] text-slate-400 ml-3">001-project-hub</span>
+          <div class="flex-1"></div>
+          <svg class="w-4 h-4 text-slate-400 cursor-pointer mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          <svg class="w-4 h-4 text-slate-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+
+        <!-- Viewer Content (placeholder) -->
+        <div class="flex-1 flex items-center justify-center p-8">
+          <div class="text-center">
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm max-w-sm">
+              <div class="text-5xl mb-4">&#128196;</div>
+              <div class="text-sm font-bold text-slate-600 mb-1">plan.html</div>
+              <div class="text-xs text-slate-400">여기에 산출물이 WebView로 렌더링됩니다</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decision Bar -->
+        <div class="bg-white border-t border-slate-200 px-5 py-3 flex items-center gap-3">
+          <div class="flex-1 bg-slate-50 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-400">코멘트를 입력하세요...</div>
+          <button class="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold rounded-xl hover:bg-red-100 transition">반려</button>
+          <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition">승인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4: 전체 목업 (다크) -->
+<!-- ============================================================ -->
+<div id="tab-fullmock-dark" class="tab-content">
+  <h3 class="font-bold text-sm text-slate-700 mb-4">전체 개선안 - 다크 모드 (프로젝트 상세화면)</h3>
+  <div class="mockup-frame dark-mockup-frame mx-auto">
+    <div class="flex" style="height:560px">
+      <!-- Collapsed Sidebar Dark -->
+      <div class="w-14 border-r shrink-0 flex flex-col items-center py-4" style="background:#0F172A;border-color:#334155">
+        <div class="w-8 h-8 bg-indigo-500 rounded-lg mb-3"></div>
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style="background:#1E293B">
+          <svg class="w-4 h-4" style="color:#64748B" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </div>
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#1E293B">
+          <svg class="w-4 h-4" style="color:#818CF8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+        </div>
+        <div class="flex-1"></div>
+        <!-- Theme Toggle - Sun -->
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-2 cursor-pointer" style="background:#1E293B">
+          <svg class="w-4 h-4" style="color:#FBBF24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#1E293B">
+          <svg class="w-4 h-4" style="color:#64748B" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+        </div>
+      </div>
+
+      <!-- Task Panel Dark -->
+      <div class="w-64 border-r shrink-0 flex flex-col" style="background:#0F172A;border-color:#334155">
+        <div class="p-4 border-b" style="border-color:#334155">
+          <div class="text-[10px] mb-1 flex items-center gap-1 cursor-pointer" style="color:#64748B">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            프로젝트 목록
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+            <span class="text-sm font-bold" style="color:#F1F5F9">Devdock</span>
+          </div>
+          <div class="text-[9px] font-mono mt-1" style="color:#64748B">C:\project\devdock</div>
+        </div>
+
+        <div class="flex items-center justify-between px-4 py-2.5 border-b" style="border-color:#1E293B">
+          <span class="text-[10px] font-bold" style="color:#94A3B8">태스크 (2)</span>
+          <button class="px-2.5 py-1 text-[9px] font-bold rounded-lg flex items-center gap-1" style="background:#1E293B;color:#818CF8">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            이력
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-3 space-y-2">
+          <!-- Task 1 Dark - selected -->
+          <div class="rounded-xl border-2 p-3 cursor-pointer" style="background:rgba(99,102,241,0.1);border-color:#4F46E5">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 text-[8px] font-bold rounded" style="background:rgba(52,211,153,0.15);color:#34D399">완료</span>
+                <span class="px-1 py-0.5 text-[7px] font-bold rounded" style="background:rgba(52,211,153,0.15);color:#34D399">spec</span>
+              </div>
+              <div class="flex gap-0.5">
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+              </div>
+            </div>
+            <div class="text-[11px] font-bold mb-0.5" style="color:#F1F5F9">001-project-hub</div>
+            <div class="text-[8px] mb-2" style="color:#64748B">Project Hub - 로컬 프로젝트 관리 허브</div>
+            <div class="flex flex-wrap gap-1">
+              <div class="px-1.5 py-0.5 text-[7px] font-semibold rounded-md" style="background:#4F46E5;color:#FFFFFF">plan.html</div>
+              <div class="px-1.5 py-0.5 text-[7px] font-semibold rounded-md" style="background:rgba(99,102,241,0.15);color:#818CF8">design.html</div>
+              <div class="px-1.5 py-0.5 text-[7px] font-semibold rounded-md" style="background:rgba(52,211,153,0.15);color:#34D399">spec.md</div>
+            </div>
+          </div>
+
+          <!-- Task 2 Dark -->
+          <div class="rounded-xl border p-3 cursor-pointer" style="background:#1E293B;border-color:#334155">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 text-[8px] font-bold rounded" style="background:rgba(167,139,250,0.15);color:#A78BFA">진행중</span>
+              </div>
+              <div class="flex gap-0.5">
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-2.5 h-1 rounded-full" style="background:#334155"></div>
+                <div class="w-2.5 h-1 rounded-full" style="background:#334155"></div>
+              </div>
+            </div>
+            <div class="text-[11px] font-bold mb-0.5" style="color:#F1F5F9">002-ui-improvement</div>
+            <div class="text-[8px] mb-2" style="color:#64748B">UI 개선 - 테마/탭/이력 뷰어</div>
+            <div class="flex flex-wrap gap-1">
+              <div class="px-1.5 py-0.5 text-[7px] font-semibold rounded-md" style="background:rgba(99,102,241,0.15);color:#818CF8">plan.html</div>
+              <div class="px-1.5 py-0.5 text-[7px] font-semibold rounded-md" style="background:rgba(99,102,241,0.15);color:#818CF8">design.html</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewer Area Dark -->
+      <div class="flex-1 flex flex-col" style="background:#0F172A">
+        <div class="border-b px-5 py-3 flex items-center" style="background:#1E293B;border-color:#334155">
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-md" style="background:rgba(99,102,241,0.2);color:#C7D2FE">plan.html</span>
+          <span class="text-[10px] ml-3" style="color:#64748B">001-project-hub</span>
+          <div class="flex-1"></div>
+          <svg class="w-4 h-4 cursor-pointer mr-3" style="color:#64748B" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          <svg class="w-4 h-4 cursor-pointer" style="color:#64748B" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center p-8">
+          <div class="text-center">
+            <div class="rounded-2xl border p-8" style="background:#1E293B;border-color:#334155">
+              <div class="text-5xl mb-4">&#128196;</div>
+              <div class="text-sm font-bold mb-1" style="color:#F1F5F9">plan.html</div>
+              <div class="text-xs" style="color:#64748B">여기에 산출물이 WebView로 렌더링됩니다</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t px-5 py-3 flex items-center gap-3" style="background:#1E293B;border-color:#334155">
+          <div class="flex-1 rounded-lg border px-3 py-2 text-xs" style="background:#0F172A;border-color:#334155;color:#64748B">코멘트를 입력하세요...</div>
+          <button class="px-4 py-2 text-xs font-bold rounded-xl" style="background:rgba(239,68,68,0.15);color:#FB7185">반려</button>
+          <button class="px-4 py-2 bg-indigo-500 text-white text-xs font-bold rounded-xl">승인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 5: 디자이너 상세 -->
+<!-- ============================================================ -->
+<div id="tab-detail" class="tab-content">
+  <div class="space-y-8">
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h3 class="font-bold text-sm text-indigo-600 mb-4">디자이너A 의견 (트렌드/모던)</h3>
+      <ul class="text-sm text-slate-600 space-y-3">
+        <li><strong>다크 모드 명도 전략:</strong> 사이드바 #0F172A → 컨텐츠 영역 #0F172A → 카드 #1E293B 순으로 같은 배경에 카드만 밝게 하여 깊이감. 뷰어 영역은 카드와 동일한 #1E293B로 일체감.</li>
+        <li><strong>Status 배지 다크 모드:</strong> 배경색을 rgba 투명도 15%로 처리 (예: emerald → rgba(52,211,153,0.15)), 텍스트는 원색의 400 레벨 유지. 라이트와 다크에서 동일한 인식 가능.</li>
+        <li><strong>Progress Indicator:</strong> 기획/디자인/승인/개발 4단계를 작은 바(pill) 형태로, 완료된 단계는 emerald-400, 미완료는 slate-200(라이트)/slate-700(다크).</li>
+        <li><strong>이력 HTML 스타일:</strong> Tailwind CDN + Pretendard 내장, 다크/라이트 CSS 변수로 자동 테마 대응. 타임라인 왼쪽 세로선 + 원형 노드.</li>
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h3 class="font-bold text-sm text-purple-600 mb-4">디자이너B 의견 (안정/실용)</h3>
+      <ul class="text-sm text-slate-600 space-y-3">
+        <li><strong>시맨틱 토큰 명명:</strong> scaffoldBg, cardBg, sidebarBg, textPrimary, textSecondary, textTertiary, border, borderSubtle 8개면 충분. hoverBg 추가하면 9개.</li>
+        <li><strong>기존 AppColors 유지:</strong> AppColors의 정적 상수는 그대로 두고, AppSemanticColors를 별도 클래스로 추가. 위젯에서 점진적으로 교체.</li>
+        <li><strong>테마 전환 저장:</strong> 로컬 JSON 설정 파일에 themeMode 필드 추가. SharedPreferences 대신 기존 dart:io 패턴 유지.</li>
+        <li><strong>태스크 카드 description:</strong> history.json의 name 필드를 활용. 없으면 slug만 표시.</li>
+      </ul>
+    </div>
+
+    <!-- Color Palette Comparison -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h3 class="font-bold text-sm text-slate-700 mb-4">다크 모드 컬러 팔레트 (최종 확정)</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 mb-2">배경 계열</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#0F172A;border-color:#334155"></div><div class="text-[10px]"><div class="font-bold">slate-900</div><div class="text-slate-400">#0F172A</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#1E293B;border-color:#334155"></div><div class="text-[10px]"><div class="font-bold">slate-800</div><div class="text-slate-400">#1E293B</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#334155;border-color:#475569"></div><div class="text-[10px]"><div class="font-bold">slate-700</div><div class="text-slate-400">#334155</div></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 mb-2">텍스트 계열</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#F1F5F9;border-color:#E2E8F0"></div><div class="text-[10px]"><div class="font-bold">slate-100</div><div class="text-slate-400">#F1F5F9</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#94A3B8;border-color:#CBD5E1"></div><div class="text-[10px]"><div class="font-bold">slate-400</div><div class="text-slate-400">#94A3B8</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg border" style="background:#64748B;border-color:#94A3B8"></div><div class="text-[10px]"><div class="font-bold">slate-500</div><div class="text-slate-400">#64748B</div></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 mb-2">액센트 (다크용)</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#6366F1"></div><div class="text-[10px]"><div class="font-bold">indigo-500</div><div class="text-slate-400">#6366F1</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#818CF8"></div><div class="text-[10px]"><div class="font-bold">indigo-400</div><div class="text-slate-400">#818CF8</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#C7D2FE"></div><div class="text-[10px]"><div class="font-bold">indigo-200</div><div class="text-slate-400">#C7D2FE</div></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 mb-2">Status (공통)</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#34D399"></div><div class="text-[10px]"><div class="font-bold">emerald-400</div><div class="text-slate-400">완료/승인</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#A78BFA"></div><div class="text-[10px]"><div class="font-bold">purple-400</div><div class="text-slate-400">진행중</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#60A5FA"></div><div class="text-[10px]"><div class="font-bold">blue-400</div><div class="text-slate-400">기획</div></div></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg" style="background:#FB7185"></div><div class="text-[10px]"><div class="font-bold">rose-400</div><div class="text-slate-400">반려</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<div class="bg-white border-t border-slate-200 px-8 py-4 mt-8">
+  <div class="max-w-7xl mx-auto text-xs text-slate-400">
+    디자인 시안 생성일: 2026-03-10 | 디자이너A(트렌드) + 디자이너B(안정) 통합안 | Devdock Product TF
+  </div>
+</div>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

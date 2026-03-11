@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기획서 - Devdock UI 개선</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  * { font-family: 'Pretendard', sans-serif; }
+  .flow-arrow::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #6366F1;
+  }
+  .flow-arrow-down::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #6366F1;
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white border-b border-slate-200 px-8 py-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded">002</span>
+      <span class="text-sm text-slate-400">2026-03-10</span>
+    </div>
+    <h1 class="text-2xl font-extrabold text-slate-800">Devdock UI 개선</h1>
+    <p class="text-sm text-slate-500 mt-1">테마 일관성 / 다크모드 / 탭 구조 개선 / 이력 HTML 뷰어</p>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-8 py-8 space-y-10">
+
+<!-- ============================================================ -->
+<!-- 1. 개선 개요 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">1</span>
+    개선 개요
+  </h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-red-600 mb-2">현재 문제점</h3>
+      <ul class="text-sm text-slate-600 space-y-2">
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 shrink-0"></span>FluentThemeData에 typography 색상 미설정 → 기본 black 노출</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 shrink-0"></span>Colors.white 하드코딩 → 다크 모드 전환 불가</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 shrink-0"></span>산출물 탭과 태스크 탭 기능 중복</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 shrink-0"></span>이력 탭이 280px 패널 안 텍스트 리스트 → 가독성 낮음</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 shrink-0"></span>다크 모드 미지원</li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-emerald-600 mb-2">개선 방향</h3>
+      <ul class="text-sm text-slate-600 space-y-2">
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>AppColors에 시맨틱 토큰 추가 (surface, onSurface, card 등)</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>다크 테마용 팔레트 정의 + 라이트/다크 전환 토글</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>산출물 탭 제거, 태스크 카드에 파일 + 상태 강화</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>이력 탭 제거, 이력 버튼 → WebView에서 HTML 타임라인 렌더링</li>
+        <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>전체 위젯에서 하드코딩 색상 → 시맨틱 토큰 교체</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 2. 화면 플로우 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">2</span>
+    화면 플로우
+  </h2>
+
+  <!-- Flow Chart -->
+  <div class="bg-white rounded-xl border border-slate-200 p-6 overflow-x-auto">
+    <div class="flex items-center gap-3 min-w-[800px]">
+      <!-- Step 1 -->
+      <div class="relative flex-1 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 text-center flow-arrow">
+        <div class="text-xs font-bold text-indigo-600 mb-1">대시보드</div>
+        <div class="text-[10px] text-slate-500">프로젝트 카드 그리드</div>
+        <div class="text-[10px] text-slate-400 mt-1">테마 토글 (사이드바 하단)</div>
+      </div>
+      <!-- Step 2 -->
+      <div class="relative flex-1 bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-center flow-arrow">
+        <div class="text-xs font-bold text-purple-600 mb-1">프로젝트 상세</div>
+        <div class="text-[10px] text-slate-500">태스크 목록 (좌측 패널)</div>
+        <div class="text-[10px] text-slate-400 mt-1">탭 없음 → 태스크 리스트 단일</div>
+      </div>
+      <!-- Step 3a -->
+      <div class="flex-1 space-y-2">
+        <div class="relative bg-blue-50 border-2 border-blue-200 rounded-xl p-3 text-center">
+          <div class="text-xs font-bold text-blue-600 mb-1">산출물 뷰어</div>
+          <div class="text-[10px] text-slate-500">태스크 카드 내 파일 클릭</div>
+          <div class="text-[10px] text-slate-400">→ WebView에 HTML/MD 렌더링</div>
+        </div>
+        <div class="relative bg-amber-50 border-2 border-amber-200 rounded-xl p-3 text-center">
+          <div class="text-xs font-bold text-amber-600 mb-1">이력 뷰어</div>
+          <div class="text-[10px] text-slate-500">이력 버튼 클릭</div>
+          <div class="text-[10px] text-slate-400">→ WebView에 이력 HTML 렌더링</div>
+        </div>
+      </div>
+      <!-- Step 4 -->
+      <div class="flex-1 bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 text-center">
+        <div class="text-xs font-bold text-emerald-600 mb-1">의사결정</div>
+        <div class="text-[10px] text-slate-500">하단 바에서 승인/반려</div>
+        <div class="text-[10px] text-slate-400 mt-1">코멘트 입력 → history.json 반영</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 3. 변경 상세 - 탭 구조 개선 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">3</span>
+    변경 상세: 탭 구조 개선
+  </h2>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Before -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-red-500 mb-3">Before: 3탭 구조</h3>
+      <div class="bg-slate-50 rounded-lg overflow-hidden border border-slate-200">
+        <!-- Mock Tab Bar -->
+        <div class="flex border-b border-slate-200">
+          <div class="flex-1 py-2 text-center text-[10px] font-bold text-indigo-600 border-b-2 border-indigo-600">태스크</div>
+          <div class="flex-1 py-2 text-center text-[10px] text-slate-400">산출물</div>
+          <div class="flex-1 py-2 text-center text-[10px] text-slate-400">이력</div>
+        </div>
+        <!-- Mock Content -->
+        <div class="p-3 space-y-2">
+          <div class="bg-white rounded-lg border border-slate-200 p-3">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+            </div>
+            <div class="text-[10px] font-bold">001-project-hub</div>
+            <div class="flex gap-1 mt-2">
+              <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[8px] rounded">plan.html</span>
+              <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[8px] rounded">design.html</span>
+              <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] rounded">spec.md</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-400 mt-2">산출물 탭은 태스크 내 파일 목록과 중복, 이력 탭은 좁은 패널에서 가독성 낮음</p>
+    </div>
+
+    <!-- After -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-emerald-500 mb-3">After: 단일 패널 + 이력 버튼</h3>
+      <div class="bg-slate-50 rounded-lg overflow-hidden border border-slate-200">
+        <!-- Mock Header with History Button -->
+        <div class="flex items-center justify-between px-3 py-2 border-b border-slate-200">
+          <div class="text-[10px] font-bold text-slate-600">태스크 (1)</div>
+          <button class="px-2 py-1 bg-indigo-50 text-indigo-600 text-[8px] font-bold rounded-md flex items-center gap-1">
+            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            이력 보기
+          </button>
+        </div>
+        <!-- Enhanced Task Card -->
+        <div class="p-3 space-y-2">
+          <div class="bg-white rounded-lg border border-slate-200 p-3">
+            <!-- Status + Spec Row -->
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+                <span class="px-1 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-bold rounded">spec</span>
+              </div>
+              <!-- Progress Steps -->
+              <div class="flex items-center gap-0.5">
+                <div class="w-3 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-3 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-3 h-1 bg-emerald-400 rounded-full"></div>
+                <div class="w-3 h-1 bg-emerald-400 rounded-full"></div>
+              </div>
+            </div>
+            <!-- Task Name -->
+            <div class="text-[11px] font-bold mb-1">001-project-hub</div>
+            <div class="text-[9px] text-slate-400 mb-2">Project Hub - 로컬 프로젝트 관리 허브</div>
+            <!-- File Chips - Enhanced -->
+            <div class="flex flex-wrap gap-1.5">
+              <div class="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 text-[8px] font-semibold rounded-md cursor-pointer hover:bg-indigo-100 transition">
+                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                plan.html
+              </div>
+              <div class="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 text-[8px] font-semibold rounded-md cursor-pointer hover:bg-indigo-100 transition">
+                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                design.html
+              </div>
+              <div class="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 text-[8px] font-semibold rounded-md cursor-pointer hover:bg-emerald-100 transition">
+                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                spec.md
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-[10px] text-emerald-600 mt-2">태스크명 아래 description 추가, 진행 단계 인디케이터, 파일 칩 아이콘 보강</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 4. 변경 상세 - 이력 HTML 뷰어 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">4</span>
+    변경 상세: 이력 HTML 뷰어
+  </h2>
+
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <h3 class="font-bold text-sm text-slate-700 mb-3">이력 HTML 렌더링 방식</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="bg-blue-50 rounded-lg p-4">
+        <div class="text-xs font-bold text-blue-700 mb-2">1. 데이터 소스</div>
+        <div class="text-[10px] text-slate-600">history.json을 읽어서 Dart에서 HTML 문자열을 동적 생성</div>
+      </div>
+      <div class="bg-purple-50 rounded-lg p-4">
+        <div class="text-xs font-bold text-purple-700 mb-2">2. 렌더링</div>
+        <div class="text-[10px] text-slate-600">WebView의 loadStringContent() 또는 임시 HTML 파일 생성 후 loadUrl()</div>
+      </div>
+      <div class="bg-emerald-50 rounded-lg p-4">
+        <div class="text-xs font-bold text-emerald-700 mb-2">3. 표시 영역</div>
+        <div class="text-[10px] text-slate-600">기존 우측 뷰어 영역에 렌더링 (산출물 뷰어와 동일 위치)</div>
+      </div>
+    </div>
+
+    <!-- History HTML Mock -->
+    <h3 class="font-bold text-sm text-slate-700 mb-3">이력 HTML 레이아웃 (목업)</h3>
+    <div class="bg-slate-50 rounded-lg border border-slate-200 p-4" style="max-width:390px">
+      <div class="text-sm font-bold text-slate-800 mb-4">프로젝트 이력</div>
+
+      <!-- Timeline Item -->
+      <div class="relative pl-6 pb-6 border-l-2 border-indigo-200 last:border-0">
+        <div class="absolute left-[-7px] top-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white"></div>
+        <div class="text-[10px] text-slate-400 mb-1">2026-03-10</div>
+        <div class="bg-white rounded-lg border border-slate-200 p-3">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-bold">Project Hub</span>
+            <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold rounded">완료</span>
+          </div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 text-[9px] text-slate-500">
+              <span class="w-4 text-center">1</span>
+              <span class="px-1 bg-blue-50 text-blue-700 rounded">기획</span>
+              <span>완료</span>
+            </div>
+            <div class="flex items-center gap-2 text-[9px] text-slate-500">
+              <span class="w-4 text-center">2</span>
+              <span class="px-1 bg-purple-50 text-purple-700 rounded">디자인</span>
+              <span>완료</span>
+            </div>
+            <div class="flex items-center gap-2 text-[9px] text-slate-500">
+              <span class="w-4 text-center">3</span>
+              <span class="px-1 bg-amber-50 text-amber-700 rounded">승인</span>
+              <span>승인</span>
+            </div>
+            <div class="flex items-center gap-2 text-[9px] text-slate-500">
+              <span class="w-4 text-center">4</span>
+              <span class="px-1 bg-emerald-50 text-emerald-700 rounded">개발</span>
+              <span>완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Item 2 -->
+      <div class="relative pl-6 pb-2 border-l-2 border-indigo-200">
+        <div class="absolute left-[-7px] top-0 w-3 h-3 bg-purple-400 rounded-full border-2 border-white"></div>
+        <div class="text-[10px] text-slate-400 mb-1">2026-03-10</div>
+        <div class="bg-white rounded-lg border border-slate-200 p-3">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-bold">UI 개선</span>
+            <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-bold rounded">진행중</span>
+          </div>
+          <div class="text-[9px] text-slate-400">기획 진행 중...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 5. 변경 상세 - 테마 시스템 + 다크 모드 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">5</span>
+    변경 상세: 테마 시스템 + 다크 모드
+  </h2>
+
+  <div class="space-y-4">
+    <!-- Semantic Token Table -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-slate-700 mb-3">시맨틱 컬러 토큰 정의</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-slate-200">
+              <th class="text-left py-2 px-3 text-slate-500 font-semibold">토큰</th>
+              <th class="text-left py-2 px-3 text-slate-500 font-semibold">용도</th>
+              <th class="text-center py-2 px-3 text-slate-500 font-semibold">라이트</th>
+              <th class="text-center py-2 px-3 text-slate-500 font-semibold">다크</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-600">
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">scaffoldBg</td>
+              <td class="py-2 px-3">전체 배경</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#F8FAFC"></span><div class="text-[9px] mt-0.5">#F8FAFC</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#0F172A"></span><div class="text-[9px] mt-0.5">#0F172A</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">cardBg</td>
+              <td class="py-2 px-3">카드/패널 배경</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#FFFFFF"></span><div class="text-[9px] mt-0.5">#FFFFFF</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#1E293B"></span><div class="text-[9px] mt-0.5">#1E293B</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">sidebarBg</td>
+              <td class="py-2 px-3">사이드바 배경</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#FFFFFF"></span><div class="text-[9px] mt-0.5">#FFFFFF</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#0F172A"></span><div class="text-[9px] mt-0.5">#0F172A</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">textPrimary</td>
+              <td class="py-2 px-3">주요 텍스트</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#1E293B"></span><div class="text-[9px] mt-0.5">#1E293B</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#F1F5F9"></span><div class="text-[9px] mt-0.5">#F1F5F9</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">textSecondary</td>
+              <td class="py-2 px-3">보조 텍스트</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#64748B"></span><div class="text-[9px] mt-0.5">#64748B</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#94A3B8"></span><div class="text-[9px] mt-0.5">#94A3B8</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">textTertiary</td>
+              <td class="py-2 px-3">힌트/캡션 텍스트</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#94A3B8"></span><div class="text-[9px] mt-0.5">#94A3B8</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#64748B"></span><div class="text-[9px] mt-0.5">#64748B</div></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 font-mono text-[10px]">border</td>
+              <td class="py-2 px-3">구분선/테두리</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#E2E8F0"></span><div class="text-[9px] mt-0.5">#E2E8F0</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#334155"></span><div class="text-[9px] mt-0.5">#334155</div></td>
+            </tr>
+            <tr>
+              <td class="py-2 px-3 font-mono text-[10px]">borderSubtle</td>
+              <td class="py-2 px-3">미세한 구분선</td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#F1F5F9"></span><div class="text-[9px] mt-0.5">#F1F5F9</div></td>
+              <td class="py-2 px-3 text-center"><span class="inline-block w-5 h-5 rounded border" style="background:#1E293B"></span><div class="text-[9px] mt-0.5">#1E293B</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Theme Toggle Location -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h3 class="font-bold text-sm text-slate-700 mb-3">테마 토글 위치</h3>
+      <div class="flex gap-6">
+        <div class="bg-slate-50 rounded-lg border border-slate-200 p-3 w-14">
+          <div class="space-y-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg mx-auto"></div>
+            <div class="h-px bg-slate-200"></div>
+            <div class="w-8 h-8 bg-indigo-50 rounded-lg mx-auto"></div>
+            <div class="flex-1"></div>
+            <div class="h-px bg-slate-200 mt-16"></div>
+            <div class="w-8 h-8 bg-amber-50 border-2 border-amber-300 rounded-lg mx-auto flex items-center justify-center">
+              <span class="text-[8px]">D/L</span>
+            </div>
+            <div class="w-8 h-8 bg-slate-100 rounded-lg mx-auto"></div>
+          </div>
+        </div>
+        <div class="flex-1 text-xs text-slate-600 space-y-2">
+          <p><strong>위치:</strong> 사이드바 하단, 접기 버튼 위</p>
+          <p><strong>아이콘:</strong> 라이트 모드 시 달 아이콘, 다크 모드 시 해 아이콘</p>
+          <p><strong>동작:</strong> 토글 클릭 → Riverpod StateProvider로 테마 모드 전환</p>
+          <p><strong>저장:</strong> SharedPreferences 또는 로컬 JSON 파일에 테마 설정 영속화</p>
+          <p><strong>전환:</strong> FluentApp의 theme/darkTheme 속성을 활용한 즉시 전환</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark Mode Preview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Light -->
+      <div class="rounded-xl border border-slate-200 overflow-hidden">
+        <div class="bg-white px-4 py-2 border-b border-slate-200">
+          <span class="text-xs font-bold text-slate-700">라이트 모드</span>
+        </div>
+        <div class="p-4 flex gap-2" style="background:#F8FAFC">
+          <div class="w-12 rounded-lg p-2" style="background:#FFFFFF;border:1px solid #E2E8F0">
+            <div class="w-6 h-6 bg-indigo-600 rounded mx-auto mb-2"></div>
+            <div class="w-6 h-1.5 bg-indigo-50 rounded mx-auto mb-1"></div>
+            <div class="w-6 h-1.5 bg-slate-100 rounded mx-auto"></div>
+          </div>
+          <div class="flex-1 rounded-lg p-3" style="background:#FFFFFF;border:1px solid #E2E8F0">
+            <div class="text-[9px] font-bold mb-2" style="color:#1E293B">내 프로젝트</div>
+            <div class="grid grid-cols-2 gap-1">
+              <div class="rounded p-2" style="background:#FFFFFF;border:1px solid #E2E8F0">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full mb-1"></div>
+                <div class="h-1 bg-slate-200 rounded w-full mb-1"></div>
+                <div class="h-1 bg-slate-100 rounded w-3/4"></div>
+              </div>
+              <div class="rounded p-2" style="background:#FFFFFF;border:1px solid #E2E8F0">
+                <div class="w-2 h-2 bg-blue-400 rounded-full mb-1"></div>
+                <div class="h-1 bg-slate-200 rounded w-full mb-1"></div>
+                <div class="h-1 bg-slate-100 rounded w-3/4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark -->
+      <div class="rounded-xl border border-slate-700 overflow-hidden">
+        <div class="px-4 py-2 border-b" style="background:#1E293B;border-color:#334155">
+          <span class="text-xs font-bold" style="color:#F1F5F9">다크 모드</span>
+        </div>
+        <div class="p-4 flex gap-2" style="background:#0F172A">
+          <div class="w-12 rounded-lg p-2" style="background:#0F172A;border:1px solid #334155">
+            <div class="w-6 h-6 bg-indigo-500 rounded mx-auto mb-2"></div>
+            <div class="w-6 h-1.5 rounded mx-auto mb-1" style="background:#1E293B"></div>
+            <div class="w-6 h-1.5 rounded mx-auto" style="background:#1E293B"></div>
+          </div>
+          <div class="flex-1 rounded-lg p-3" style="background:#1E293B;border:1px solid #334155">
+            <div class="text-[9px] font-bold mb-2" style="color:#F1F5F9">내 프로젝트</div>
+            <div class="grid grid-cols-2 gap-1">
+              <div class="rounded p-2" style="background:#1E293B;border:1px solid #334155">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full mb-1"></div>
+                <div class="h-1 rounded w-full mb-1" style="background:#334155"></div>
+                <div class="h-1 rounded w-3/4" style="background:#334155"></div>
+              </div>
+              <div class="rounded p-2" style="background:#1E293B;border:1px solid #334155">
+                <div class="w-2 h-2 bg-blue-400 rounded-full mb-1"></div>
+                <div class="h-1 rounded w-full mb-1" style="background:#334155"></div>
+                <div class="h-1 rounded w-3/4" style="background:#334155"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 6. 데이터 모델 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">6</span>
+    데이터 모델 변경
+  </h2>
+
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <pre class="text-xs text-slate-700 bg-slate-50 rounded-lg p-4 overflow-x-auto"><code>// app_theme.dart - 시맨틱 컬러 토큰 추가
+class AppSemanticColors {
+  final Color scaffoldBg;
+  final Color cardBg;
+  final Color sidebarBg;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color border;
+  final Color borderSubtle;
+  final Color hoverBg;
+
+  const AppSemanticColors({...});
+
+  static const light = AppSemanticColors(
+    scaffoldBg: Color(0xFFF8FAFC),
+    cardBg: Color(0xFFFFFFFF),
+    sidebarBg: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF1E293B),
+    textSecondary: Color(0xFF64748B),
+    textTertiary: Color(0xFF94A3B8),
+    border: Color(0xFFE2E8F0),
+    borderSubtle: Color(0xFFF1F5F9),
+    hoverBg: Color(0xFFF1F5F9),
+  );
+
+  static const dark = AppSemanticColors(
+    scaffoldBg: Color(0xFF0F172A),
+    cardBg: Color(0xFF1E293B),
+    sidebarBg: Color(0xFF0F172A),
+    textPrimary: Color(0xFFF1F5F9),
+    textSecondary: Color(0xFF94A3B8),
+    textTertiary: Color(0xFF64748B),
+    border: Color(0xFF334155),
+    borderSubtle: Color(0xFF1E293B),
+    hoverBg: Color(0xFF334155),
+  );
+}
+
+// project_providers.dart - 테마 모드 Provider 추가
+final themeModeProvider = StateProvider&lt;ThemeMode&gt;((ref) =&gt; ThemeMode.light);
+
+// project_service.dart - 이력 HTML 생성 메서드 추가
+String generateHistoryHtml(List&lt;TaskEntry&gt; history, {bool isDark = false});</code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 7. 우선순위 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">7</span>
+    우선순위
+  </h2>
+
+  <div class="space-y-3">
+    <!-- P0 -->
+    <div class="bg-white rounded-xl border-l-4 border-red-500 p-4 border border-slate-200">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2 py-0.5 bg-red-50 text-red-700 text-xs font-bold rounded">P0</span>
+        <span class="text-sm font-bold text-slate-800">필수 (이번 개선의 핵심)</span>
+      </div>
+      <ul class="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+        <li>시맨틱 컬러 토큰 시스템 구축 (AppSemanticColors)</li>
+        <li>전체 위젯에서 하드코딩 Colors.white/black 제거 → 시맨틱 토큰 교체</li>
+        <li>다크 테마 팔레트 정의 및 FluentThemeData 확장</li>
+        <li>테마 전환 토글 (사이드바 하단)</li>
+        <li>산출물 탭 제거 + 태스크 탭 강화</li>
+      </ul>
+    </div>
+
+    <!-- P1 -->
+    <div class="bg-white rounded-xl border-l-4 border-amber-500 p-4 border border-slate-200">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-bold rounded">P1</span>
+        <span class="text-sm font-bold text-slate-800">중요 (사용성 개선)</span>
+      </div>
+      <ul class="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+        <li>이력 탭 제거 → 이력 버튼 + WebView HTML 렌더링</li>
+        <li>이력 HTML 생성 로직 (타임라인 레이아웃)</li>
+        <li>태스크 카드에 진행 단계 인디케이터 추가</li>
+        <li>태스크 카드에 description(name) 표시</li>
+      </ul>
+    </div>
+
+    <!-- P2 -->
+    <div class="bg-white rounded-xl border-l-4 border-blue-500 p-4 border border-slate-200">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-bold rounded">P2</span>
+        <span class="text-sm font-bold text-slate-800">부가 (완성도)</span>
+      </div>
+      <ul class="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+        <li>테마 설정 영속화 (로컬 저장)</li>
+        <li>이력 HTML 내 필터/검색 기능</li>
+        <li>이력 HTML 다크 모드 연동</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 8. 영향 범위 -->
+<!-- ============================================================ -->
+<section>
+  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">8</span>
+    영향 범위
+  </h2>
+
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="border-b border-slate-200">
+          <th class="text-left py-2 px-3 text-slate-500">파일</th>
+          <th class="text-left py-2 px-3 text-slate-500">변경 내용</th>
+          <th class="text-center py-2 px-3 text-slate-500">변경 정도</th>
+        </tr>
+      </thead>
+      <tbody class="text-slate-600">
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">app_theme.dart</td>
+          <td class="py-2 px-3">AppSemanticColors 추가, buildAppTheme() 다크 모드 확장, buildDarkTheme() 추가</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-red-50 text-red-700 rounded font-bold">대폭</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">main.dart</td>
+          <td class="py-2 px-3">FluentApp에 darkTheme 추가, themeModeProvider 연결</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded font-bold">중간</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">project_detail_screen.dart</td>
+          <td class="py-2 px-3">탭 구조 제거, 이력 버튼 추가, 하드코딩 색상 교체</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-red-50 text-red-700 rounded font-bold">대폭</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">sidebar.dart</td>
+          <td class="py-2 px-3">테마 토글 버튼 추가, 하드코딩 색상 교체</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded font-bold">중간</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">project_card.dart</td>
+          <td class="py-2 px-3">하드코딩 색상 교체</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">소폭</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">dashboard_screen.dart</td>
+          <td class="py-2 px-3">하드코딩 색상 교체</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">소폭</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">add_project_dialog.dart</td>
+          <td class="py-2 px-3">하드코딩 색상 교체</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">소폭</span></td>
+        </tr>
+        <tr class="border-b border-slate-100">
+          <td class="py-2 px-3 font-mono text-[10px]">project_providers.dart</td>
+          <td class="py-2 px-3">themeModeProvider 추가</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">소폭</span></td>
+        </tr>
+        <tr>
+          <td class="py-2 px-3 font-mono text-[10px]">project_service.dart</td>
+          <td class="py-2 px-3">generateHistoryHtml() 메서드 추가</td>
+          <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded font-bold">중간</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<!-- Footer -->
+<div class="bg-white border-t border-slate-200 px-8 py-4 mt-8">
+  <div class="max-w-6xl mx-auto text-xs text-slate-400">
+    기획서 생성일: 2026-03-10 | 기획자A(디테일) + 기획자B(창의) 통합안 | Devdock Product TF
+  </div>
+</div>
+
+</body>
+</html>

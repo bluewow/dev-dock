@@ -17,14 +17,16 @@ class AppSidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final collapsed = ref.watch(sidebarCollapsedProvider);
     final width = collapsed ? 56.0 : 220.0;
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       width: width,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(right: BorderSide(color: AppColors.slate200, width: 1)),
+      decoration: BoxDecoration(
+        color: sc.sidebarBg,
+        border: Border(right: BorderSide(color: sc.border, width: 1)),
       ),
       child: Column(
         children: [
@@ -42,20 +44,20 @@ class AppSidebar extends ConsumerWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.primary600,
+                      color: isDark ? AppColors.primary500 : AppColors.primary600,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(FluentIcons.archive, size: 16, color: Colors.white),
+                    child: const Icon(FluentIcons.archive, size: 16, color: Color(0xFFFFFFFF)),
                   ),
                 ),
                 if (!collapsed) ...[
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'Devdock',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: AppColors.slate800,
+                      color: sc.textPrimary,
                     ),
                   ),
                 ],
@@ -63,7 +65,12 @@ class AppSidebar extends ConsumerWidget {
             ),
           ),
 
-          const Divider(style: DividerThemeData(horizontalMargin: EdgeInsets.zero)),
+          Divider(
+            style: DividerThemeData(
+              horizontalMargin: EdgeInsets.zero,
+              decoration: BoxDecoration(color: sc.border),
+            ),
+          ),
 
           // Nav items
           Expanded(
@@ -83,10 +90,32 @@ class AppSidebar extends ConsumerWidget {
             ),
           ),
 
-          // Bottom: collapse toggle
-          const Divider(style: DividerThemeData(horizontalMargin: EdgeInsets.zero)),
+          // Theme toggle
+          Divider(
+            style: DividerThemeData(
+              horizontalMargin: EdgeInsets.zero,
+              decoration: BoxDecoration(color: sc.border),
+            ),
+          ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 12, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 12, vertical: 8),
+            child: _NavItem(
+              icon: isDark ? FluentIcons.sunny : FluentIcons.clear_night,
+              label: isDark ? '라이트 모드' : '다크 모드',
+              isActive: false,
+              collapsed: collapsed,
+              onTap: () {
+                final current = ref.read(themeModeProvider);
+                ref.read(themeModeProvider.notifier).state =
+                    current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+              },
+              iconColor: isDark ? AppColors.amber400 : null,
+            ),
+          ),
+
+          // Collapse toggle
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 12, vertical: 8),
             child: _NavItem(
               icon: collapsed ? FluentIcons.chevron_right : FluentIcons.chevron_left,
               label: '접기',
@@ -95,6 +124,7 @@ class AppSidebar extends ConsumerWidget {
               onTap: () => ref.read(sidebarCollapsedProvider.notifier).state = !collapsed,
             ),
           ),
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -107,6 +137,7 @@ class _NavItem extends StatelessWidget {
   final bool isActive;
   final bool collapsed;
   final VoidCallback onTap;
+  final Color? iconColor;
 
   const _NavItem({
     required this.icon,
@@ -114,10 +145,14 @@ class _NavItem extends StatelessWidget {
     required this.isActive,
     required this.collapsed,
     required this.onTap,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final sc = semanticColors(context);
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -127,7 +162,9 @@ class _NavItem extends StatelessWidget {
           vertical: 10,
         ),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary50 : Colors.transparent,
+          color: isActive
+              ? (isDark ? AppColors.primary500.withValues(alpha: 0.15) : AppColors.primary50)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -136,7 +173,9 @@ class _NavItem extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isActive ? AppColors.primary700 : AppColors.slate400,
+              color: iconColor ?? (isActive
+                  ? (isDark ? AppColors.primary400 : AppColors.primary700)
+                  : sc.textTertiary),
             ),
             if (!collapsed) ...[
               const SizedBox(width: 12),
@@ -145,7 +184,9 @@ class _NavItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive ? AppColors.primary700 : AppColors.slate500,
+                  color: isActive
+                      ? (isDark ? AppColors.primary400 : AppColors.primary700)
+                      : sc.textSecondary,
                 ),
               ),
             ],

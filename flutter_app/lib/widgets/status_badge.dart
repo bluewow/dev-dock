@@ -13,10 +13,12 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.statusBg(status),
+        color: AppColors.statusBg(status, isDark: isDark),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -24,7 +26,7 @@ class StatusBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
-          color: AppColors.statusText(status),
+          color: AppColors.statusText(status, isDark: isDark),
         ),
       ),
     );
