@@ -75,5 +75,24 @@
     ],
     "reviews": ["docs/tasks/003-claude-installer/plan.html", "docs/tasks/003-claude-installer/design.html"],
     "spec": "docs/tasks/003-claude-installer/spec.md"
+  },
+  {
+    "id": "004-help-screen",
+    "slug": "help-screen",
+    "name": "사용자 가이드 도움말 화면",
+    "path": "docs/tasks/004-help-screen",
+    "summary": {
+      "title": "앱 내 사용 가이드 화면 추가",
+      "changes": [
+        "사이드바에 '사용 가이드' 메뉴 항목 추가 (FluentIcons.help)",
+        "HelpScreen 신규 구현 — 5단계 스텝 카드 구조",
+        "AppShell에 _navIndex == 1 → HelpScreen 라우팅 연결",
+        "라이트/다크 모드 완전 대응"
+      ],
+      "stats": { "files_changed": 3, "issues": 0 }
+    },
+    "logs": [
+      { "phase": "개발", "status": "완료", "date": "2026-03-11", "note": "HelpScreen(5단계: Devdock 소개/프로젝트 등록/산출물 뷰어/.claude 설치/기타) 구현, 사이드바 메뉴 추가, AppShell 라우팅 연결. flutter analyze 0 issues." }
+    ]
   }
 ]

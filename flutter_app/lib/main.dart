@@ -4,6 +4,7 @@ import 'theme/app_theme.dart';
 import 'widgets/sidebar.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/project_detail_screen.dart';
+import 'screens/help_screen.dart';
 import 'providers/project_providers.dart';
 
 void main() {
@@ -80,9 +81,11 @@ class _AppShellState extends ConsumerState<AppShell> {
                     ref.read(scanTriggerProvider.notifier).state++;
                   },
                 )
-              : DashboardScreen(
-                  onProjectTap: (id) => setState(() => _selectedProjectId = id),
-                ),
+              : _navIndex == 1
+                  ? const HelpScreen()
+                  : DashboardScreen(
+                      onProjectTap: (id) => setState(() => _selectedProjectId = id),
+                    ),
         ),
       ],
     ),
