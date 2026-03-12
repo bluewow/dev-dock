@@ -23,12 +23,30 @@ tools:
 
 ## 사전 준비
 
+### 0. DOCS_ROOT 결정 (최우선)
+
+**반드시 가장 먼저** 아래 절차로 `DOCS_ROOT` 절대 경로를 결정한다. 이후 모든 docs 관련 경로는 이 값을 기준으로 한다.
+
+1. `.claude` 폴더의 절대 경로를 찾는다 (Glob으로 `**/.claude` 검색 또는 환경에서 확인)
+2. `.claude` 폴더의 **부모 디렉토리**가 프로젝트 루트(`PROJECT_ROOT`)이다
+   - 예: `.claude`가 `/home/user/workspace/.claude`이면 → `PROJECT_ROOT = /home/user/workspace`
+3. `DOCS_ROOT = {PROJECT_ROOT}/docs` 로 설정한다
+   - 예: `DOCS_ROOT = /home/user/workspace/docs`
+4. `DOCS_ROOT` 경로를 **절대 경로 변수로 기억**하고, 이후 모든 산출물/history 경로에 사용한다:
+   - 태스크 폴더: `{DOCS_ROOT}/tasks/{NNN-slug}/`
+   - 이력 파일: `{DOCS_ROOT}/history.json`
+   - 데이터 폴더: `{DOCS_ROOT}/data/`
+
+**금지**: CWD(현재 작업 디렉토리) 기준 상대 경로 `docs/...`를 사용하지 않는다. 반드시 `DOCS_ROOT` 절대 경로를 사용한다.
+
+### 1~4. 프로젝트 파악
+
 1. 루트 CLAUDE.md를 읽고 프로젝트 기술 스택, 구조, 패턴을 파악한다
    - **Tech Stack** 섹션에서 프레임워크, 언어, 스타일링, DB 등을 확인
    - **Patterns & Conventions** 섹션에서 코딩 컨벤션 확인
    - **Style Guide** 섹션에서 디자인 토큰, 폰트, 컬러 등 확인
 2. CLAUDE.md가 없으면 유저에게 `/init` 실행을 안내하고 중단한다
-3. `docs/history.json`이 있으면 읽어서 기존 이력을 파악한다
+3. `{DOCS_ROOT}/history.json`이 있으면 읽어서 기존 이력을 파악한다
 4. 해당 태스크 폴더에 `context.md`가 이미 존재하면 **스캔을 생략**하고 기존 context.md를 재사용한다 (반려 후 재작업 등)
 
 ---
@@ -59,7 +77,7 @@ tools:
 4. 필요한 팀원을 Agent 도구로 소환한다 (온보딩 결과를 프롬프트에 반영)
 5. SendMessage로 팀원 간 협업을 오케스트레이션한다
 6. 산출물 규칙에 따라 결과물을 생성한다
-7. `docs/history.json`을 업데이트한다
+7. `{DOCS_ROOT}/history.json`을 업데이트한다
 
 ### 온보딩 (Phase 0)
 
@@ -118,11 +136,18 @@ tools:
 
 ### 팀원 소환 시 공통 프롬프트 구조
 
+**중요**: 팀원 소환 시 `{DOCS_ROOT}`를 실제 절대 경로로 치환하여 전달한다. 팀원이 경로를 추측하지 않도록 한다.
+
 ```
 당신은 [역할]입니다. [성격/특징 설명]
 
+## 경로 정보
+- DOCS_ROOT: [실제 절대 경로] (예: /home/user/workspace/docs)
+- 태스크 폴더: [DOCS_ROOT]/tasks/[NNN-slug]/
+- 산출물은 반드시 위 태스크 폴더 내에 생성한다
+
 ## 프로젝트 정보
-먼저 `docs/tasks/[NNN-slug]/context.md`를 읽으세요. 프로젝트 스택, 기존 코드 패턴, 디자인 시스템 등이 정리되어 있습니다.
+먼저 `[DOCS_ROOT]/tasks/[NNN-slug]/context.md`를 읽으세요. 프로젝트 스택, 기존 코드 패턴, 디자인 시스템 등이 정리되어 있습니다.
 
 ## 현재 태스크
 {구체적 작업 지시}
@@ -135,12 +160,19 @@ tools:
 
 ## 산출물 구조
 
-각 워크플로우는 `docs/tasks/` 하위에 **태스크 단위 폴더**로 산출물을 생성한다.
+각 워크플로우는 `{DOCS_ROOT}/tasks/` 하위에 **태스크 단위 폴더**로 산출물을 생성한다.
+
+> **경로 규칙 (절대 준수)**:
+> - 모든 산출물은 반드시 `{DOCS_ROOT}/tasks/{NNN-slug}/` 하위에 생성한다
+> - `{DOCS_ROOT}` 바로 아래에 태스크 폴더를 만들지 않는다 (예: `{DOCS_ROOT}/point/` 금지)
+> - `tasks/` 디렉토리를 건너뛰지 않는다
+> - 폴더명은 반드시 `{3자리번호}-{slug}` 형식이다 (예: `001-login`, `002-dashboard`)
+> - slug만 단독으로 폴더명에 사용하지 않는다 (예: `login/`, `point/` 금지)
 
 ```
-docs/
-├── tasks/                            # 태스크 단위 폴더
-│   ├── 001-login/                    # 첫 번째 태스크
+{DOCS_ROOT}/                          # = {PROJECT_ROOT}/docs/
+├── tasks/                            # 태스크 단위 폴더 (반드시 이 하위에만 생성)
+│   ├── 001-login/                    # 올바른 예: {NNN}-{slug}
 │   │   ├── context.md                # 리더 스캔 결과 캐시 (팀원 온보딩용)
 │   │   ├── plan.html                 # 기획 요약 + 화면 플로우
 │   │   ├── design.html               # 디자인 시안 (최신)
@@ -160,10 +192,11 @@ docs/
 
 ### 태스크 번호 채번 규칙
 
-- `docs/tasks/` 하위 폴더를 스캔하여 기존 최대 번호 + 1로 채번
+- `{DOCS_ROOT}/tasks/` 하위 폴더를 스캔하여 기존 최대 번호 + 1로 채번
 - 3자리 zero-padding: `001`, `002`, ..., `999`
 - 폴더명: `{번호}-{slug}` (예: `001-login`, `002-dashboard`)
 - 빈 디렉토리이면 `001`부터 시작
+- **검증**: 폴더 생성 전에 경로가 `{DOCS_ROOT}/tasks/{NNN}-{slug}/` 패턴인지 확인한다
 
 ### context.md (리더 스캔 결과 캐시)
 
@@ -269,7 +302,7 @@ docs/
   {
     "id": "001-login",
     "name": "로그인 기능",
-    "path": "docs/tasks/001-login",
+    "path": "tasks/001-login",
     "logs": [
       { "phase": "기획", "status": "완료", "date": "2026-03-10", "note": "기획자A, 기획자B 참여" },
       { "phase": "디자인", "status": "완료", "date": "2026-03-10", "note": "디자이너A 주도" },
@@ -304,22 +337,22 @@ docs/
    - 기존 화면 목록, 레이아웃 패턴
    - 컬러 팔레트, 타이포그래피, 간격 체계
    - 기존 UI 컴포넌트 스타일 (버튼, 카드, 모달, 폼 등)
-   - 스타일 가이드 파일이 있으면 읽기 (`docs/style/guide.md` 등)
-   - 스캔 결과를 `docs/tasks/[NNN-slug]/context.md`에 저장 (형식은 아래 "context.md 형식" 참조)
+   - 스타일 가이드 파일이 있으면 읽기 (`{DOCS_ROOT}/../` 하위에서 탐색)
+   - 스캔 결과를 `{DOCS_ROOT}/tasks/[NNN-slug]/context.md`에 저장 (형식은 아래 "context.md 형식" 참조)
 2. **[Small]** 리더가 직접 plan.html + design.html 작성 (서브에이전트 없음):
    - idea.html이 있으면 내용을 기반으로 작성, 없으면 온보딩 Q&A 결과를 기반으로 작성
    - → step 5로 이동
 3. **[Standard]** idea.html이 있으면 Q&A 생략 후 기획자A에게 브리핑, 없으면 기획자A+B 병렬 소환 후 리더가 통합
 4. **[Standard]** 디자이너A+B 병렬 소환 → QA에게 기획 플로우 검증 요청
 5. 태스크 폴더에 산출물 저장:
-   - `docs/tasks/[NNN-slug]/plan.html`
-   - `docs/tasks/[NNN-slug]/design.html`
-6. `docs/history.json` 업데이트
+   - `{DOCS_ROOT}/tasks/[NNN-slug]/plan.html`
+   - `{DOCS_ROOT}/tasks/[NNN-slug]/design.html`
+6. `{DOCS_ROOT}/history.json` 업데이트
 7. **반드시 AskUserQuestion으로 블로킹**: 사용자에게 산출물 경로를 안내하고 승인/반려를 기다린다
    ```
    기획서와 디자인 시안이 완성되었습니다.
-   - 기획서: docs/tasks/[NNN-slug]/plan.html
-   - 디자인: docs/tasks/[NNN-slug]/design.html
+   - 기획서: {DOCS_ROOT}/tasks/[NNN-slug]/plan.html
+   - 디자인: {DOCS_ROOT}/tasks/[NNN-slug]/design.html
    브라우저에서 확인 후 아래 방식으로 알려주세요:
    - 승인: "[slug] 승인"
    - 조건부 승인: "[slug] 승인, 단 OO은 2차에서"
@@ -339,8 +372,8 @@ docs/
 4. **[Standard]** 디자이너A, 디자이너B 병렬 소환 (Before/After 산출물 규칙 전달)
 5. **[Standard만]**: QA에게 기획 플로우 검증 요청
 6. 리더가 최종 승인한 피드백을 사용자에게 전달한다
-7. **산출물**: `docs/tasks/[NNN-slug]/plan.html`, `docs/tasks/[NNN-slug]/design.html` (Before/After 포함)
-8. `docs/history.json` 업데이트
+7. **산출물**: `{DOCS_ROOT}/tasks/[NNN-slug]/plan.html`, `{DOCS_ROOT}/tasks/[NNN-slug]/design.html` (Before/After 포함)
+8. `{DOCS_ROOT}/history.json` 업데이트
 9. **반드시 AskUserQuestion으로 블로킹**: 사용자에게 산출물 경로를 안내하고 승인/반려를 기다린다 (워크플로우 (1)의 step 8과 동일 방식)
    ⚠️ 이 단계에서 절대로 개발(spec.md 생성, 코드 작성)을 진행하지 않는다.
 
@@ -372,7 +405,7 @@ docs/
    스캔 결과를 context.md에 저장 (형식은 아래 "context.md 형식" 참조)
 
 3. 프론트개발자, 백엔드개발자 병렬로 구현 진행 (context.md에서 각자 도메인 정보 참조)
-4. 완료 시 `docs/history.json`에 개발 완료 log 추가
+4. 완료 시 `{DOCS_ROOT}/history.json`에 개발 완료 log 추가
 
 ### (4) 버그
 
@@ -381,7 +414,7 @@ docs/
 1. QA를 소환하여 버그 분석/재현 요청
 2. 분석 결과에 따라 프론트개발자 또는 백엔드개발자(또는 둘 다) 소환
 3. 수정 후 QA에게 검증 요청
-4. `docs/history.json`에 버그 수정 log 추가
+4. `{DOCS_ROOT}/history.json`에 버그 수정 log 추가
 
 ---
 
@@ -399,7 +432,7 @@ docs/
 
 ### 승인 / 조건부 승인 시
 
-1. `docs/history.json`에 승인 log 추가 (조건부 시 조건을 note에 기록)
+1. `{DOCS_ROOT}/history.json`에 승인 log 추가 (조건부 시 조건을 note에 기록)
 2. 해당 태스크 폴더에 `spec.md` 생성 (plan/design 내용 + 조건 반영)
    - 조건부 승인의 경우 spec 상단에 `제외 항목` / `조건` 섹션을 명시
 3. **바로 개발 워크플로우(3)로 진입한다** (사용자의 추가 명령 불필요)
@@ -407,7 +440,7 @@ docs/
 
 ### 반려 시
 
-1. `docs/history.json`에 반려 log 추가 (반려 사유를 note에 기록)
+1. `{DOCS_ROOT}/history.json`에 반려 log 추가 (반려 사유를 note에 기록)
 2. 반려 사유를 분석하여 돌아갈 단계를 판단:
 
 | 반려 유형 | 판단 기준 | 돌아가는 단계 |
@@ -432,7 +465,7 @@ docs/
 (1) 신규 기능 / (2) 기존 개선
         │
         ▼
-  태스크 번호 채번 → docs/tasks/NNN-slug/ 폴더 생성
+  태스크 번호 채번 → {DOCS_ROOT}/tasks/NNN-slug/ 폴더 생성
   context.md, plan.html, design.html 산출물 생성
   history.json 기획/디자인 완료 log
         │
@@ -496,7 +529,7 @@ docs/
 - **기존 코드 존중**: 기존 구현된 코드의 패턴과 구조를 파악하고, 일관되게 확장한다
 - **최소 변경 원칙**: 불필요한 리팩토링이나 과도한 추상화를 지양한다
 - **자연스러운 체크포인트**: TF 작업 완료 → 산출물 생성 → 사용자 승인이 자연스러운 중단점이다
-- **세션 독립성**: `docs/history.json`과 `docs/tasks/` 폴더 구조를 통해 세션이 달라도 현재 상태를 파악하고 이어서 진행할 수 있다
+- **세션 독립성**: `{DOCS_ROOT}/history.json`과 `{DOCS_ROOT}/tasks/` 폴더 구조를 통해 세션이 달라도 현재 상태를 파악하고 이어서 진행할 수 있다
 - **반려 이력 활용**: 재작업 시 이전 반려 log를 반드시 참고하여 같은 지적이 반복되지 않도록 한다
 - git commit 메시지도 함께 생성 (CLAUDE.md 지시)
 - DB 변경 시 Flyway 파일 생성 (undo 포함, CLAUDE.md 지시)
