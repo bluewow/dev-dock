@@ -636,6 +636,291 @@ class ProjectService {
     return (totalFiles: totalFiles, folders: folders, rootFiles: rootFiles, excludedFiles: excludeFiles);
   }
 
+  // ─── Markdown → HTML Rendering ──────────────────────────────────────
+
+  /// Markdown 파일 내용을 스타일링된 HTML로 변환한다.
+  /// WebView에서 렌더링하기 위한 단일 HTML 문서를 반환한다.
+  String generateMarkdownHtml(String markdown, String fileName, {bool isDark = false}) {
+    final bg = isDark ? '#0F172A' : '#F8FAFC';
+    final textPrimary = isDark ? '#F1F5F9' : '#1E293B';
+    final textSecondary = isDark ? '#94A3B8' : '#64748B';
+    final textTertiary = isDark ? '#64748B' : '#94A3B8';
+    final border = isDark ? '#334155' : '#E2E8F0';
+    final headerBg = isDark ? '#1E293B' : '#F1F5F9';
+    final codeBg = isDark ? '#0F172A' : '#F1F5F9';
+    final codeBorder = isDark ? '#334155' : '#E2E8F0';
+    final inlineCodeBg = isDark ? '#334155' : '#E2E8F0';
+    final linkColor = isDark ? '#818CF8' : '#4F46E5';
+    final blockquoteBorder = isDark ? '#818CF8' : '#C7D2FE';
+    final blockquoteBg = isDark ? 'rgba(99,102,241,0.08)' : '#EEF2FF';
+    final tableBorder = isDark ? '#334155' : '#E2E8F0';
+    final tableHeaderBg = isDark ? '#1E293B' : '#F1F5F9';
+    final hrColor = isDark ? '#334155' : '#E2E8F0';
+
+    final html = _convertMarkdownToHtml(markdown);
+
+    final buffer = StringBuffer();
+    buffer.writeln('<!DOCTYPE html>');
+    buffer.writeln('<html lang="ko"><head><meta charset="UTF-8">');
+    buffer.writeln('<style>');
+    buffer.writeln('* { font-family: "Pretendard", -apple-system, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }');
+    buffer.writeln('body { background: $bg; color: $textPrimary; }');
+    buffer.writeln('.header { background: $headerBg; border-bottom: 1px solid $border; padding: 12px 20px; display: flex; align-items: center; gap: 8px; }');
+    buffer.writeln('.header .badge { background: ${isDark ? 'rgba(52,211,153,0.2)' : '#ECFDF5'}; color: ${isDark ? '#34D399' : '#047857'}; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }');
+    buffer.writeln('.header .filename { font-size: 12px; font-weight: 600; color: $textSecondary; }');
+    buffer.writeln('.content { max-width: 800px; margin: 0 auto; padding: 32px 24px; line-height: 1.7; font-size: 14px; }');
+    buffer.writeln('h1 { font-size: 24px; font-weight: 800; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid $border; }');
+    buffer.writeln('h2 { font-size: 20px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid $border; }');
+    buffer.writeln('h3 { font-size: 16px; font-weight: 700; margin: 24px 0 8px; }');
+    buffer.writeln('h4 { font-size: 14px; font-weight: 700; margin: 20px 0 6px; }');
+    buffer.writeln('h5, h6 { font-size: 13px; font-weight: 600; margin: 16px 0 4px; color: $textSecondary; }');
+    buffer.writeln('.content > h1:first-child { margin-top: 0; }');
+    buffer.writeln('p { margin: 8px 0; }');
+    buffer.writeln('ul, ol { margin: 8px 0; padding-left: 24px; }');
+    buffer.writeln('li { margin: 4px 0; }');
+    buffer.writeln('li > ul, li > ol { margin: 2px 0; }');
+    buffer.writeln('a { color: $linkColor; text-decoration: none; }');
+    buffer.writeln('a:hover { text-decoration: underline; }');
+    buffer.writeln('code { background: $inlineCodeBg; padding: 2px 6px; border-radius: 4px; font-family: "Consolas", "Courier New", monospace; font-size: 12px; }');
+    buffer.writeln('pre { background: $codeBg; border: 1px solid $codeBorder; border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto; }');
+    buffer.writeln('pre code { background: transparent; padding: 0; font-size: 12px; line-height: 1.6; }');
+    buffer.writeln('blockquote { border-left: 3px solid $blockquoteBorder; background: $blockquoteBg; padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }');
+    buffer.writeln('blockquote p { margin: 4px 0; color: $textSecondary; }');
+    buffer.writeln('table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }');
+    buffer.writeln('th { background: $tableHeaderBg; font-weight: 600; text-align: left; padding: 8px 12px; border: 1px solid $tableBorder; }');
+    buffer.writeln('td { padding: 8px 12px; border: 1px solid $tableBorder; }');
+    buffer.writeln('tr:hover td { background: ${isDark ? '#253347' : '#F8FAFC'}; }');
+    buffer.writeln('hr { border: none; border-top: 1px solid $hrColor; margin: 24px 0; }');
+    buffer.writeln('strong { font-weight: 700; }');
+    buffer.writeln('em { font-style: italic; }');
+    buffer.writeln('del { text-decoration: line-through; color: $textTertiary; }');
+    buffer.writeln('img { max-width: 100%; border-radius: 8px; margin: 8px 0; }');
+    buffer.writeln('.checkbox { margin-right: 6px; }');
+    buffer.writeln('</style></head><body>');
+
+    buffer.writeln('<div class="header">');
+    buffer.writeln('<span class="badge">MD</span>');
+    buffer.writeln('<span class="filename">${_escapeHtml(fileName)}</span>');
+    buffer.writeln('</div>');
+
+    buffer.writeln('<div class="content">');
+    buffer.writeln(html);
+    buffer.writeln('</div>');
+
+    buffer.writeln('</body></html>');
+    return buffer.toString();
+  }
+
+  /// 간이 Markdown → HTML 변환기
+  /// 외부 패키지 없이 주요 Markdown 문법을 처리한다.
+  String _convertMarkdownToHtml(String markdown) {
+    final lines = markdown.split('\n');
+    final buffer = StringBuffer();
+    var inCodeBlock = false;
+    final codeBuffer = StringBuffer();
+    var inList = false;
+    var listType = ''; // 'ul' or 'ol'
+    var inTable = false;
+    final tableRows = <String>[];
+
+    void closeList() {
+      if (inList) {
+        buffer.writeln('</$listType>');
+        inList = false;
+        listType = '';
+      }
+    }
+
+    void closeTable() {
+      if (inTable && tableRows.isNotEmpty) {
+        buffer.writeln('<table>');
+        for (var i = 0; i < tableRows.length; i++) {
+          // 구분선 행(---|---) 건너뛰기
+          if (i == 1 && RegExp(r'^\|[\s\-:|]+\|$').hasMatch(tableRows[i].trim())) {
+            continue;
+          }
+          final cells = tableRows[i]
+              .trim()
+              .replaceAll(RegExp(r'^\|'), '')
+              .replaceAll(RegExp(r'\|$'), '')
+              .split('|')
+              .map((c) => c.trim())
+              .toList();
+          final tag = i == 0 ? 'th' : 'td';
+          buffer.writeln('<tr>${cells.map((c) => '<$tag>${_processInline(c)}</$tag>').join()}</tr>');
+        }
+        buffer.writeln('</table>');
+        tableRows.clear();
+        inTable = false;
+      }
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+
+      // 코드 블록 (```)
+      if (line.trimLeft().startsWith('```')) {
+        if (!inCodeBlock) {
+          closeList();
+          closeTable();
+          inCodeBlock = true;
+          codeBuffer.clear();
+        } else {
+          buffer.writeln('<pre><code>${_escapeHtml(codeBuffer.toString().trimRight())}</code></pre>');
+          inCodeBlock = false;
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBuffer.writeln(line);
+        continue;
+      }
+
+      final trimmed = line.trim();
+
+      // 빈 줄
+      if (trimmed.isEmpty) {
+        closeList();
+        closeTable();
+        continue;
+      }
+
+      // 테이블 (| 로 시작하고 끝나는 행)
+      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        closeList();
+        if (!inTable) inTable = true;
+        tableRows.add(trimmed);
+        continue;
+      } else {
+        closeTable();
+      }
+
+      // 헤딩 (#)
+      final headingMatch = RegExp(r'^(#{1,6})\s+(.+)$').firstMatch(trimmed);
+      if (headingMatch != null) {
+        closeList();
+        final level = headingMatch.group(1)!.length;
+        final text = headingMatch.group(2)!;
+        buffer.writeln('<h$level>${_processInline(text)}</h$level>');
+        continue;
+      }
+
+      // 수평선 (---, ***, ___)
+      if (RegExp(r'^[-*_]{3,}$').hasMatch(trimmed)) {
+        closeList();
+        buffer.writeln('<hr>');
+        continue;
+      }
+
+      // 인용 (>)
+      if (trimmed.startsWith('>')) {
+        closeList();
+        final quoteContent = trimmed.substring(1).trimLeft();
+        buffer.writeln('<blockquote><p>${_processInline(quoteContent)}</p></blockquote>');
+        continue;
+      }
+
+      // 비순서 목록 (- , * , + )
+      final ulMatch = RegExp(r'^[\-*+]\s+(.+)$').firstMatch(trimmed);
+      if (ulMatch != null) {
+        closeTable();
+        if (!inList || listType != 'ul') {
+          closeList();
+          buffer.writeln('<ul>');
+          inList = true;
+          listType = 'ul';
+        }
+        final content = ulMatch.group(1)!;
+        // 체크박스 처리
+        if (content.startsWith('[ ] ')) {
+          buffer.writeln('<li><span class="checkbox">&#9744;</span>${_processInline(content.substring(4))}</li>');
+        } else if (content.startsWith('[x] ') || content.startsWith('[X] ')) {
+          buffer.writeln('<li><span class="checkbox">&#9745;</span>${_processInline(content.substring(4))}</li>');
+        } else {
+          buffer.writeln('<li>${_processInline(content)}</li>');
+        }
+        continue;
+      }
+
+      // 순서 목록 (1. , 2. , ...)
+      final olMatch = RegExp(r'^\d+\.\s+(.+)$').firstMatch(trimmed);
+      if (olMatch != null) {
+        closeTable();
+        if (!inList || listType != 'ol') {
+          closeList();
+          buffer.writeln('<ol>');
+          inList = true;
+          listType = 'ol';
+        }
+        buffer.writeln('<li>${_processInline(olMatch.group(1)!)}</li>');
+        continue;
+      }
+
+      // 일반 단락
+      closeList();
+      buffer.writeln('<p>${_processInline(trimmed)}</p>');
+    }
+
+    // 남은 블록 닫기
+    if (inCodeBlock) {
+      buffer.writeln('<pre><code>${_escapeHtml(codeBuffer.toString().trimRight())}</code></pre>');
+    }
+    closeList();
+    closeTable();
+
+    return buffer.toString();
+  }
+
+  /// 인라인 Markdown 요소 처리 (bold, italic, code, link, image, strikethrough)
+  String _processInline(String text) {
+    var result = _escapeHtml(text);
+
+    // 이미지: ![alt](url)
+    result = result.replaceAllMapped(
+      RegExp(r'!\[([^\]]*)\]\(([^)]+)\)'),
+      (m) => '<img src="${m.group(2)}" alt="${m.group(1)}">',
+    );
+
+    // 링크: [text](url)
+    result = result.replaceAllMapped(
+      RegExp(r'\[([^\]]+)\]\(([^)]+)\)'),
+      (m) => '<a href="${m.group(2)}" target="_blank">${m.group(1)}</a>',
+    );
+
+    // 인라인 코드: `code`
+    result = result.replaceAllMapped(
+      RegExp(r'`([^`]+)`'),
+      (m) => '<code>${m.group(1)}</code>',
+    );
+
+    // 볼드+이탤릭: ***text*** or ___text___
+    result = result.replaceAllMapped(
+      RegExp(r'\*\*\*(.+?)\*\*\*|___(.+?)___'),
+      (m) => '<strong><em>${m.group(1) ?? m.group(2)}</em></strong>',
+    );
+
+    // 볼드: **text** or __text__
+    result = result.replaceAllMapped(
+      RegExp(r'\*\*(.+?)\*\*|__(.+?)__'),
+      (m) => '<strong>${m.group(1) ?? m.group(2)}</strong>',
+    );
+
+    // 이탤릭: *text* or _text_
+    result = result.replaceAllMapped(
+      RegExp(r'\*(.+?)\*|_(.+?)_'),
+      (m) => '<em>${m.group(1) ?? m.group(2)}</em>',
+    );
+
+    // 취소선: ~~text~~
+    result = result.replaceAllMapped(
+      RegExp(r'~~(.+?)~~'),
+      (m) => '<del>${m.group(1)}</del>',
+    );
+
+    return result;
+  }
+
   // ─── History HTML Generation ────────────────────────────────────────
 
   String generateHistoryHtml(List<TaskEntry> history, {bool isDark = false}) {

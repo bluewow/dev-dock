@@ -55,11 +55,13 @@ class _DeliverableStep {
       return _DeliverableStep(file: file, icon: '🎨', label: '디자인 시안', order: 2, color: AppColors.purple700, colorDark: AppColors.purple400);
     } else if (name == 'spec.md') {
       return _DeliverableStep(file: file, icon: '📄', label: '스펙', order: 3, color: AppColors.emerald700, colorDark: AppColors.emerald400);
+    } else if (name == 'summary.md') {
+      return _DeliverableStep(file: file, icon: '📊', label: '결과 요약', order: 4, color: AppColors.emerald700, colorDark: AppColors.emerald400);
     } else if (name == 'context.md') {
-      return _DeliverableStep(file: file, icon: '📎', label: '컨텍스트', order: 4, color: AppColors.slate500, colorDark: AppColors.slate400);
+      return _DeliverableStep(file: file, icon: '📎', label: '컨텍스트', order: 5, color: AppColors.slate500, colorDark: AppColors.slate400);
     } else {
       // 기타 파일: 파일명 그대로
-      return _DeliverableStep(file: file, icon: '📑', label: file.name, order: 5, color: AppColors.slate500, colorDark: AppColors.slate400);
+      return _DeliverableStep(file: file, icon: '📑', label: file.name, order: 6, color: AppColors.slate500, colorDark: AppColors.slate400);
     }
   }
 }
@@ -176,8 +178,32 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     });
 
     if (_webviewReady && file.absolutePath.isNotEmpty) {
-      final uri = Uri.file(file.absolutePath);
+      if (file.type == 'md') {
+        // Markdown 파일은 HTML로 변환하여 임시 파일로 로드
+        await _loadMarkdownFile(file);
+      } else {
+        final uri = Uri.file(file.absolutePath);
+        await _webviewController.loadUrl(uri.toString());
+      }
+    }
+  }
+
+  /// Markdown 파일을 HTML로 변환하여 WebView에 로드
+  Future<void> _loadMarkdownFile(ScannedFile file) async {
+    try {
+      final content = File(file.absolutePath).readAsStringSync();
+      final isDark = FluentTheme.of(context).brightness == Brightness.dark;
+      final service = ref.read(projectServiceProvider);
+      final html = service.generateMarkdownHtml(content, file.name, isDark: isDark);
+
+      final tempDir = Directory.systemTemp;
+      final tempFile = File('${tempDir.path}/devdock_md_${file.name.hashCode}.html');
+      await tempFile.writeAsString(html);
+
+      final uri = Uri.file(tempFile.path);
       await _webviewController.loadUrl(uri.toString());
+    } catch (e) {
+      debugPrint('Markdown render error: $e');
     }
   }
 

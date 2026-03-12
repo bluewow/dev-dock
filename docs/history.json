@@ -94,5 +94,24 @@
     "logs": [
       { "phase": "개발", "status": "완료", "date": "2026-03-11", "note": "HelpScreen(5단계: Devdock 소개/프로젝트 등록/산출물 뷰어/.claude 설치/기타) 구현, 사이드바 메뉴 추가, AppShell 라우팅 연결. flutter analyze 0 issues." }
     ]
+  },
+  {
+    "id": "005-markdown-viewer",
+    "slug": "markdown-viewer",
+    "name": "Markdown 뷰어 및 결과 요약 단계 추가",
+    "path": "docs/tasks/005-markdown-viewer",
+    "summary": {
+      "title": "Markdown 파일 렌더링 뷰어 및 summary.md 단계 추가",
+      "changes": [
+        "ProjectService에 Markdown → HTML 변환 렌더러 추가 (generateMarkdownHtml)",
+        ".md 파일 클릭 시 스타일링된 HTML로 변환하여 WebView에 표시",
+        "_DeliverableStep에 summary.md (결과 요약) 단계 추가",
+        "헤딩, 리스트, 코드블록, 테이블, 인용, 인라인 서식 등 주요 Markdown 문법 지원"
+      ],
+      "stats": { "files_changed": 2, "issues": 0 }
+    },
+    "logs": [
+      { "phase": "개발", "status": "완료", "date": "2026-03-12", "note": "ProjectService.generateMarkdownHtml 메서드 추가 (간이 MD→HTML 변환기 포함), project_detail_screen.dart에 _loadMarkdownFile 메서드 추가, _DeliverableStep에 summary.md 단계(order:4) 추가. flutter analyze 0 issues. 빌드 성공." }
+    ]
   }
 ]
