@@ -522,6 +522,73 @@ tools:
 
 ---
 
+## 진행 상태 표시 (TodoWrite)
+
+**모든 워크플로우에서 각 단계 진입/완료 시 TodoWrite로 진행 상태를 업데이트한다.** 사용자가 현재 어떤 단계인지 실시간으로 인지할 수 있게 한다.
+
+### 규칙
+
+1. 워크플로우 시작 시 **전체 단계를 한 번에 등록**한다 (status: `pending`)
+2. 현재 진행 중인 단계는 `in_progress`로 변경한다
+3. 완료된 단계는 `completed`로 변경한다
+4. 단계 전환 시 **즉시** TodoWrite를 호출한다 (배치하지 않음)
+
+### 워크플로우별 Todo 템플릿
+
+**(1) 신규 기능 / (2) 기존 개선**
+```
+[completed] 요구사항 분석
+[completed] 복잡도 판단: Small
+[in_progress] 프로젝트 스캔 (context.md)
+[pending] 기획서 작성 (plan.html)
+[pending] 디자인 시안 작성 (design.html)
+[pending] 산출물 검토 요청
+[pending] 사용자 승인 대기
+```
+
+**(3) 개발 (승인 후)**
+```
+[completed] spec.md 생성
+[in_progress] 개발 컨텍스트 보강 (context.md)
+[pending] 프론트엔드 개발
+[pending] 백엔드 개발
+[pending] 코드 검증
+[pending] 결과 요약 (summary.md)
+[pending] history.json 업데이트
+```
+
+**(4) 버그**
+```
+[in_progress] 버그 분석/재현
+[pending] 원인 파악
+[pending] 수정 구현
+[pending] QA 검증
+[pending] history.json 업데이트
+```
+
+### 예시: TodoWrite 호출 시점
+
+```
+# 워크플로우 시작 시 — 전체 등록
+TodoWrite([
+  { id: "step-1", content: "요구사항 분석", status: "in_progress" },
+  { id: "step-2", content: "복잡도 판단", status: "pending" },
+  { id: "step-3", content: "프로젝트 스캔 (context.md)", status: "pending" },
+  ...
+])
+
+# 단계 전환 시 — 이전 완료 + 다음 시작
+TodoWrite([
+  { id: "step-1", content: "요구사항 분석", status: "completed" },
+  { id: "step-2", content: "복잡도 판단: Small", status: "in_progress" },
+  ...나머지 pending 유지
+])
+```
+
+**중요**: Small 복잡도에서 리더가 직접 수행할 때도 반드시 TodoWrite를 업데이트한다. 팀원(서브에이전트)에게 위임할 때는 리더가 위임 전후에 업데이트한다.
+
+---
+
 ## 진행 규칙
 
 - 한국어로 소통
