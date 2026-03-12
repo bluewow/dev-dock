@@ -34,7 +34,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             '프로젝트 등록 — 로컬 폴더를 등록해 대시보드에서 한눈에 관리',
             '산출물 뷰어 — docs/tasks/ 폴더의 HTML 파일을 앱 안에서 바로 열람',
             '이력 추적 — 기획·디자인·개발 단계 진행 이력을 타임라인으로 확인',
-            '.claude 설치 — Claude Code 설정을 프로젝트에 자동으로 설치',
           ],
         ),
       ],
@@ -97,42 +96,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             'spec.md — 개발 스펙 (마크다운)',
             'idea.html — 분석서',
           ],
-        ),
-      ],
-    ),
-    _GuideStep(
-      icon: FluentIcons.settings,
-      iconColorLight: AppColors.purple700,
-      iconColorDark: AppColors.purple400,
-      iconBgLight: AppColors.purple50,
-      iconBgDark: Color(0x26A78BFA), // purple400 @15%
-      title: '.claude 설치',
-      subtitle: 'Claude Code 설정 자동 배포',
-      sections: [
-        _GuideSection(
-          heading: '.claude 설치가 무엇인가요?',
-          body:
-              'Claude Code를 사용할 때 필요한 커맨드·에이전트·훅 설정 파일을 프로젝트에 자동으로 복사합니다.\n'
-              'Devdock 자체 .claude 폴더가 있는 경우에만 이 기능이 활성화됩니다.',
-        ),
-        _GuideSection(
-          heading: '어떻게 설치하나요?',
-          body:
-              '"새 프로젝트" 등록 다이얼로그에서 유효한 경로를 입력하면 "Claude 설정 설치" 토글이 나타납니다.\n'
-              '토글을 켜고 등록하면 자동으로 .claude 폴더가 복사됩니다.',
-        ),
-        _GuideSection(
-          heading: '기존 .claude 폴더가 있을 때는?',
-          body:
-              '기존 .claude 폴더가 감지되면 경고 메시지가 표시됩니다.\n'
-              '등록 시 삭제 확인 다이얼로그가 나타나며, 확인 후에만 기존 폴더를 삭제하고 새로 설치합니다.',
-        ),
-        _GuideSection(
-          heading: '설치 후 settings.local.json을 만들어야 하나요?',
-          body:
-              '일부 훅 설정이 환경 변수를 필요로 합니다.\n'
-              '프로젝트의 .claude/ 폴더 안에 settings.local.json 파일을 직접 생성하고, '
-              '필요한 키(예: SLACK_WEBHOOK_URL)를 입력하세요.',
         ),
       ],
     ),
@@ -208,7 +171,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     ),
                   ),
                   Text(
-                    '5분 안에 Devdock의 핵심 기능을 파악하세요',
+                    '4단계로 Devdock의 핵심 기능을 파악하세요',
                     style: TextStyle(fontSize: 13, color: sc.textTertiary),
                   ),
                 ],

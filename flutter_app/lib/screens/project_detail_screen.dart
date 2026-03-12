@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import '../models/project.dart';
 import '../models/task_entry.dart';
 import '../models/scanned_file.dart';
-import '../models/claude_file_entry.dart';
+
 import '../providers/project_providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/status_badge.dart';
@@ -70,8 +70,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   final _webviewController = WebviewController();
   bool _webviewReady = false;
   bool _showingHistory = false;
-  bool _showingClaudeFile = false;
-  String? _selectedClaudeFileName;
   StreamSubscription<FileSystemEvent>? _fileWatcher;
   StreamSubscription<FileSystemEvent>? _historyWatcher;
   StreamSubscription<dynamic>? _webMessageSubscription;
@@ -430,8 +428,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ),
               ),
 
-              // .claude section
-              _buildClaudeSection(project),
             ],
           ),
         ),
@@ -564,7 +560,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ? tasks.where((t) => t.slug == _selectedTaskSlug).firstOrNull
         : null;
 
-    if (_selectedFile == null && !_showingHistory && !_showingClaudeFile) {
+    if (_selectedFile == null && !_showingHistory) {
       return Container(
         color: sc.scaffoldBg,
         child: Center(
@@ -596,43 +592,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           ),
           child: Row(
             children: [
-              if (_showingClaudeFile && _selectedClaudeFileName != null)
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.slate700 : AppColors.slate100,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '.claude',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Consolas',
-                            color: isDark ? AppColors.slate400 : AppColors.slate600,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text('>', style: TextStyle(fontSize: 11, color: sc.borderSubtle)),
-                      ),
-                      Text(
-                        _selectedClaudeFileName!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Consolas',
-                          color: sc.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (selectedTask != null && !_showingHistory)
+              if (selectedTask != null && !_showingHistory)
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -669,7 +629,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 const Spacer(),
 
               // Action buttons
-              if (!_showingHistory && !_showingClaudeFile && _selectedFile != null)
+              if (!_showingHistory && _selectedFile != null)
                 IconButton(
                   icon: Icon(FluentIcons.open_in_new_window, size: 14, color: sc.textTertiary),
                   onPressed: () {
@@ -684,8 +644,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   _selectedFile = null;
                   _selectedTaskSlug = null;
                   _showingHistory = false;
-                  _showingClaudeFile = false;
-                  _selectedClaudeFileName = null;
                 }),
               ),
             ],
@@ -700,7 +658,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ),
 
         // 이전/다음 네비게이션 바
-        if (!_showingHistory && !_showingClaudeFile && steps.length > 1 && currentIdx >= 0)
+        if (!_showingHistory && steps.length > 1 && currentIdx >= 0)
           _buildPrevNextBar(steps, currentIdx, isDark, sc),
       ],
     );
@@ -815,302 +773,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ],
       ),
     );
-  }
-
-  // ─── .claude Section ──────────────────────────────────────────────────────
-
-  Widget _buildClaudeSection(Project project) {
-    final sc = semanticColors(context);
-    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
-    final isExpanded = ref.watch(claudeSectionExpandedProvider);
-    final claudeFilesAsync = ref.watch(claudeFilesProvider(widget.projectId));
-
-    final hasClaudeFolder = claudeFilesAsync.valueOrNull?.isNotEmpty ?? false;
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: sc.border)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          GestureDetector(
-            onTap: () {
-              ref.read(claudeSectionExpandedProvider.notifier).state = !isExpanded;
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              color: Colors.transparent,
-              child: Row(
-                children: [
-                  Icon(
-                    isExpanded ? FluentIcons.chevron_down : FluentIcons.chevron_right,
-                    size: 10,
-                    color: sc.textTertiary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '.claude',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: sc.textTertiary,
-                      fontFamily: 'Consolas',
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: hasClaudeFolder
-                          ? (isDark ? AppColors.emerald400.withValues(alpha: 0.15) : AppColors.emerald50)
-                          : (isDark ? AppColors.slate700 : AppColors.slate100),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      hasClaudeFolder ? '설치됨' : '미설치',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                        color: hasClaudeFolder
-                            ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
-                            : (isDark ? AppColors.slate400 : AppColors.slate500),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content (expanded)
-          if (isExpanded)
-            claudeFilesAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.all(12),
-                child: Center(child: ProgressRing()),
-              ),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text('스캔 오류: $e', style: TextStyle(fontSize: 10, color: sc.textTertiary)),
-              ),
-              data: (files) {
-                if (files.isEmpty) {
-                  return _buildClaudeNotInstalled(project, sc, isDark);
-                }
-                return ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 200),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: files.map((entry) => _buildClaudeTreeItem(entry, 0, sc, isDark)).toList(),
-                    ),
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClaudeNotInstalled(Project project, AppSemanticColors sc, bool isDark) {
-    final service = ref.read(projectServiceProvider);
-    final hasSource = service.hasSourceClaude;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          Icon(FluentIcons.code, size: 24, color: sc.borderSubtle),
-          const SizedBox(height: 8),
-          Text(
-            '.claude 설정이 설치되지 않았습니다',
-            style: TextStyle(fontSize: 10, color: sc.textTertiary),
-            textAlign: TextAlign.center,
-          ),
-          if (hasSource) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => _installClaudeFromDetail(project),
-                style: ButtonStyle(
-                  padding: WidgetStatePropertyAll(
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  ),
-                ),
-                child: const Text('설치하기', style: TextStyle(fontSize: 10)),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClaudeTreeItem(ClaudeFileEntry entry, int depth, AppSemanticColors sc, bool isDark) {
-    final isSelected = _showingClaudeFile && _selectedClaudeFileName == entry.name && !entry.isDirectory;
-
-    if (entry.isDirectory) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: depth * 12.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  Icon(FluentIcons.folder_open, size: 10, color: sc.textTertiary),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      entry.name,
-                      style: TextStyle(fontSize: 10, color: sc.textSecondary, fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          ...entry.children.map((child) => _buildClaudeTreeItem(child, depth + 1, sc, isDark)),
-        ],
-      );
-    }
-
-    return Padding(
-      padding: EdgeInsets.only(left: depth * 12.0),
-      child: GestureDetector(
-        onTap: () => _openClaudeFile(entry),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          margin: const EdgeInsets.symmetric(vertical: 1),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (isDark ? AppColors.primary500.withValues(alpha: 0.1) : AppColors.primary50)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                FluentIcons.file_code,
-                size: 10,
-                color: isSelected
-                    ? (isDark ? AppColors.primary400 : AppColors.primary600)
-                    : sc.textTertiary,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  entry.name,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected
-                        ? (isDark ? AppColors.primary400 : AppColors.primary600)
-                        : sc.textSecondary,
-                    fontFamily: 'Consolas',
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openClaudeFile(ClaudeFileEntry entry) async {
-    if (entry.isDirectory || !_webviewReady) return;
-
-    final service = ref.read(projectServiceProvider);
-    final content = service.readClaudeFile(entry.absolutePath);
-    final isDark = FluentTheme.of(context).brightness == Brightness.dark;
-    final html = service.generateClaudeFileHtml(content, entry.name, isDark: isDark);
-
-    // 임시 파일로 저장하여 WebView에 로드
-    final tempDir = Directory.systemTemp;
-    final tempFile = File('${tempDir.path}/devdock_claude_${entry.name.hashCode}.html');
-    await tempFile.writeAsString(html);
-
-    setState(() {
-      _showingClaudeFile = true;
-      _selectedClaudeFileName = entry.name;
-      _selectedFile = null;
-      _selectedTaskSlug = null;
-      _showingHistory = false;
-    });
-
-    final uri = Uri.file(tempFile.path);
-    await _webviewController.loadUrl(uri.toString());
-  }
-
-  Future<void> _installClaudeFromDetail(Project project) async {
-    final service = ref.read(projectServiceProvider);
-
-    // 재귀 방지 체크
-    if (service.isDevdockPath(project.path)) {
-      if (!mounted) return;
-      await displayInfoBar(context, builder: (context, close) {
-        return InfoBar(
-          title: const Text('Devdock 프로젝트에는 설치할 수 없습니다'),
-          severity: InfoBarSeverity.error,
-          onClose: close,
-        );
-      });
-      return;
-    }
-
-    // 기존 .claude 존재 확인
-    final hasExisting = service.hasClaudeConfig(project.path);
-    if (hasExisting) {
-      if (!mounted) return;
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => ContentDialog(
-          title: const Text('.claude 덮어쓰기'),
-          content: const Text('기존 .claude 폴더를 삭제하고 새로 설치합니다.\n계속하시겠습니까?'),
-          actions: [
-            Button(child: const Text('취소'), onPressed: () => Navigator.pop(ctx, false)),
-            FilledButton(child: const Text('설치'), onPressed: () => Navigator.pop(ctx, true)),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
-    }
-
-    final result = await service.installClaude(
-      targetPath: project.path,
-      forceOverwrite: hasExisting,
-    );
-
-    if (!mounted) return;
-
-    if (result.success) {
-      // 스캔 리트리거
-      ref.read(scanTriggerProvider.notifier).state++;
-      await displayInfoBar(context, builder: (context, close) {
-        return InfoBar(
-          title: Text('.claude 설치 완료 (${result.filesCopied}개 파일)'),
-          severity: InfoBarSeverity.success,
-          onClose: close,
-        );
-      });
-    } else {
-      await displayInfoBar(context, builder: (context, close) {
-        return InfoBar(
-          title: Text('설치 실패: ${result.error ?? "알 수 없는 오류"}'),
-          severity: InfoBarSeverity.error,
-          onClose: close,
-        );
-      });
-    }
   }
 
   // ─── Helper Methods ──────────────────────────────────────────────────────
