@@ -2,7 +2,7 @@
 ; 설치 프로그램 생성용
 
 #define MyAppName "Devdock"
-#define MyAppVersion "0.1.3"
+#define MyAppVersion "0.1.4"
 #define MyAppPublisher "Devdock"
 #define MyAppExeName "devdock.exe"
 #define MyAppDescription "로컬 프로젝트 관리 허브"

@@ -16,11 +16,12 @@
 ## 2. 혼자 빠르게 개발할 때 (`/dev`)
 
 ```
-/dev:plan [기능]   구현 계획만 세워줘 (코드 안 건드림)
+/dev:plan [기능]    구현 계획만 세워줘 (코드 안 건드림)
 /dev:go [기능]      바로 구현해줘 (코드 수정함)
+/dev:test [대상]    테스트 작성 및 실행
 ```
 
-**추천 흐름:** `/dev:plan` → `/dev:go`
+**추천 흐름:** `/dev:plan` → `/dev:go` → `/dev:test`
 **간단한 건:** `/dev:go`만 바로 써도 됩니다
 
 ---
@@ -104,17 +105,31 @@ docs/tasks/001-login/
 
 ```
 프로젝트/
-├── CLAUDE.md              프로젝트 컨텍스트 (/init으로 생성)
+├── CLAUDE.md                  프로젝트 컨텍스트 (/init으로 생성)
 ├── docs/
-│   ├── tasks/             태스크별 산출물
-│   ├── history.json       이력 데이터
-│   └── history.html       이력 뷰 (브라우저)
+│   ├── tasks/                 태스크별 산출물
+│   ├── history.json           이력 데이터
+│   └── history.html           이력 뷰 (브라우저)
 └── .claude/
-    ├── commands/          커맨드 정의
+    ├── commands/              커맨드 정의
     │   ├── init.md
-    │   ├── dev/           build, go, pm
-    │   └── team/          product
-    ├── agents/            에이전트 정의
-    │   └── product-team.md
-    └── README.md          ← 이 파일
+    │   ├── dev/
+    │   │   ├── plan.md            구현 계획
+    │   │   ├── go.md              구현 실행
+    │   │   ├── pm.md              아이디어 기획
+    │   │   ├── test.md            테스트 작성/실행
+    │   │   ├── idea-template.html 기획서 HTML 템플릿
+    │   │   ├── plan-template.html 기획서 HTML 템플릿
+    │   │   └── design-template.html 디자인 시안 HTML 템플릿
+    │   └── team/
+    │       └── product.md     Product Team 소환
+    ├── agents/                에이전트 정의
+    │   ├── product-team.md    Product Team 에이전트 (핵심 로직)
+    │   └── shared/            공통 규칙 (에이전트/커맨드가 참조)
+    │       ├── artifact-rules.md  산출물 구조/경로/템플릿 규칙
+    │       ├── history-rules.md   history.json 포맷/상태 판단
+    │       └── onboarding.md      온보딩 절차/복잡도 판단
+    ├── hooks/
+    │   └── slack-notify.js    Slack 알림 훅
+    └── README.md              ← 이 파일
 ```
