@@ -545,10 +545,18 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     return steps;
   }
 
-  /// 현재 선택된 파일의 단계 인덱스 반환
+  /// 현재 선택된 파일의 단계 인덱스 반환 (버전 파일도 해당 스텝으로 인식)
   int _currentStepIndex(List<_DeliverableStep> steps) {
     if (_selectedFile == null) return -1;
-    return steps.indexWhere((s) => s.file.relativePath == _selectedFile!.relativePath);
+    return steps.indexWhere((s) =>
+        s.file.relativePath == _selectedFile!.relativePath ||
+        s.file.versions.any((v) => v.relativePath == _selectedFile!.relativePath));
+  }
+
+  /// 버전 파일명에서 버전 번호 추출 (idea-v1.html → "v1")
+  String _versionLabel(String filename) {
+    final match = RegExp(r'-v(\d+)\.').firstMatch(filename);
+    return match != null ? 'v${match.group(1)}' : filename;
   }
 
   Widget _buildViewer(Project project, List<ScannedTask> tasks, List<TaskEntry>? history) {
@@ -669,26 +677,30 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     final widgets = <Widget>[];
     for (int i = 0; i < steps.length; i++) {
       final step = steps[i];
-      final isActive = i == currentIdx;
+      final isVersionSelected = step.file.versions.any((v) => v.relativePath == _selectedFile?.relativePath);
+      final isBaseActive = i == currentIdx && !isVersionSelected;
+      final isStepActive = i == currentIdx; // base 또는 버전 선택 시
       final stepColor = isDark ? step.colorDark : step.color;
 
       if (i > 0) {
-        // 화살표 구분자
         widgets.add(Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text('›', style: TextStyle(fontSize: 14, color: sc.borderSubtle)),
         ));
       }
 
+      // 메인 스텝 칩
       widgets.add(
         GestureDetector(
           onTap: () => _openFile(step.file, _selectedTaskSlug!),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: isActive
+              color: isBaseActive
                   ? stepColor.withValues(alpha: isDark ? 0.2 : 0.1)
-                  : Colors.transparent,
+                  : isStepActive
+                      ? stepColor.withValues(alpha: isDark ? 0.08 : 0.05)
+                      : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -700,8 +712,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   step.label,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive ? stepColor : sc.textSecondary,
+                    fontWeight: isStepActive ? FontWeight.w700 : FontWeight.w400,
+                    color: isStepActive ? stepColor : sc.textSecondary,
                   ),
                 ),
               ],
@@ -709,6 +721,40 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           ),
         ),
       );
+
+      // 버전 칩 (이전 버전들, 오름차순 v1 → v2)
+      for (final vf in step.file.versions) {
+        final isVersionActive = _selectedFile?.relativePath == vf.relativePath;
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 3),
+            child: GestureDetector(
+              onTap: () => _openFile(vf, _selectedTaskSlug!),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isVersionActive
+                      ? stepColor.withValues(alpha: isDark ? 0.2 : 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    color: isVersionActive ? stepColor : sc.borderSubtle,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  _versionLabel(vf.name),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: isVersionActive ? stepColor : sc.textTertiary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
     }
     return widgets;
   }

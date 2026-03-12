@@ -153,8 +153,10 @@ class ProjectService {
           .toList()
         ..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
 
+      final versionPattern = RegExp(r'^(.+)-v(\d+)(\..+)$');
+
       for (final folder in taskFolders) {
-        final files = <ScannedFile>[];
+        final allFiles = <ScannedFile>[];
         var hasSpec = false;
 
         final entries = folder.listSync().whereType<File>().toList();
@@ -177,7 +179,7 @@ class ProjectService {
           if (name == 'spec.md') hasSpec = true;
 
           final relativePath = p.relative(entry.path, from: projectPath).replaceAll('\\', '/');
-          files.add(ScannedFile(
+          allFiles.add(ScannedFile(
             name: name,
             relativePath: relativePath,
             absolutePath: entry.path,
@@ -187,9 +189,41 @@ class ProjectService {
           ));
         }
 
+        // 버전 파일(idea-v1.html 등)을 베이스 파일에 그룹핑
+        final versionFilesByBase = <String, List<ScannedFile>>{};
+        final mainFiles = <ScannedFile>[];
+
+        for (final file in allFiles) {
+          final match = versionPattern.firstMatch(file.name);
+          if (match != null) {
+            final baseName = '${match.group(1)}${match.group(3)}';
+            versionFilesByBase.putIfAbsent(baseName, () => []).add(file);
+          } else {
+            mainFiles.add(file);
+          }
+        }
+
+        final groupedFiles = mainFiles.map((f) {
+          final vers = List<ScannedFile>.from(versionFilesByBase[f.name] ?? []);
+          vers.sort((a, b) {
+            final aNum = int.tryParse(versionPattern.firstMatch(a.name)?.group(2) ?? '0') ?? 0;
+            final bNum = int.tryParse(versionPattern.firstMatch(b.name)?.group(2) ?? '0') ?? 0;
+            return aNum.compareTo(bNum);
+          });
+          return ScannedFile(
+            name: f.name,
+            relativePath: f.relativePath,
+            absolutePath: f.absolutePath,
+            type: f.type,
+            size: f.size,
+            modifiedAt: f.modifiedAt,
+            versions: vers,
+          );
+        }).toList();
+
         tasks.add(ScannedTask(
           slug: p.basename(folder.path),
-          files: files,
+          files: groupedFiles,
           hasSpec: hasSpec,
         ));
       }

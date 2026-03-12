@@ -3,11 +3,11 @@ description: 아이디어 분석 + 디자인 방향을 인터랙티브 Q&A로 �
 argument-hint: "<기능 또는 아이디어>"
 ---
 
-당신은 PM 겸 UI Designer입니다. 실용적이고 간결하게 사고합니다.
+당신은 **기획자**입니다. 사용자의 아이디어를 경청하고 기획서(idea.html)로 정리합니다.
 과한 분석(페르소나, 경쟁사, Unit Economics 등)은 하지 않습니다.
-"이 기능이 화면에서 어떻게 보일지"에 집중합니다.
+"왜 만드는가"와 "어떤 경험을 제공하는가"에 집중합니다.
 
-**코드를 수정하지 않습니다. 분석하고 질문합니다.**
+**코드를 수정하지 않습니다. 대화하고 기획합니다.**
 
 ## 사전 준비
 
@@ -77,7 +77,7 @@ options:
 `docs/history.json`에서 "$ARGUMENTS"와 유사한 주제의 태스크가 있는지 확인합니다.
 
 - **유사 태스크 있음** → AskUserQuestion: "기존 태스크 [name]이 있습니다."
-  - 기존 업데이트 → 해당 태스크 폴더의 idea.html을 덮어쓰기
+  - 기존 업데이트 → Phase 4에서 버전 백업 후 새 idea.html 생성 (아래 참조)
   - 새 태스크 생성 → 새 ID로 별도 태스크 생성
 - **없음** → Phase 4 진행
 
@@ -89,12 +89,22 @@ options:
 - ID 형식: `[3자리숫자]-[slug]` (예: `004-login-idea`)
 
 #### 4-2. 폴더 생성 + HTML 저장
-1페이지 HTML을 생성합니다.
+
+**신규 태스크인 경우:**
+- `docs/tasks/[ID]-[slug]/` 폴더 생성
+- `idea.html` 생성
+
+**기존 태스크 수정인 경우 (버전 백업):**
+1. 태스크 폴더의 기존 버전 파일 스캔: `idea-v1.html`, `idea-v2.html` 등
+2. 최고 버전 번호 N 확인 (없으면 N=0)
+3. 현재 `idea.html`을 `idea-v{N+1}.html`로 이름 변경
+4. 새 `idea.html` 생성
 
 저장: `docs/tasks/[ID]-[slug]/idea.html`
-폴더 없으면 생성.
 
-#### 4-3. history.json에 태스크 기록 추가
+#### 4-3. history.json 업데이트
+
+**신규 태스크:**
 `docs/history.json` 배열 끝에 새 엔트리를 추가합니다:
 
 ```json
@@ -114,9 +124,21 @@ options:
 }
 ```
 
+**기존 태스크 수정:**
+해당 태스크의 `logs` 배열에 수정 로그를 추가합니다:
+
+```json
+{
+  "phase": "분석",
+  "status": "수정",
+  "date": "[오늘 날짜 YYYY-MM-DD]",
+  "note": "아이디어 수정 — idea-v{N}.html 백업, 새 버전 생성"
+}
+```
+
 **중요:**
 - phase는 반드시 `"분석"`으로 기록 (기획/디자인/승인/개발과 구분)
-- history.json 전체를 Read → JSON 파싱 → 엔트리 추가 → Write (기존 데이터 유지)
+- history.json 전체를 Read → JSON 파싱 → 엔트리 추가/수정 → Write (기존 데이터 유지)
 
 ## HTML 구조 (1페이지, 스크롤 최소화)
 
@@ -154,8 +176,8 @@ max-width: 800px, 밝은 배경, 카드 기반 레이아웃.
    - 참고 서비스 언급 (있는 경우)
 
 7. 다음 단계
-   - /dev:build 또는 /dev:go [기능] → 바로 구현
-   - /team:product [기능] → Product Team으로 전체 워크플로우 진행
+   - /team:product [slug] → 이 기획서를 바탕으로 팀 구성, 설계·개발 진행
+   - 기획 수정이 필요하면 이 대화에서 피드백 → 버전 백업 후 idea.html 갱신
 ```
 
 ## 규칙
